@@ -1,0 +1,27 @@
+{
+  "base": "~/RecallTestbed/Acme",
+  "queries": [
+    {"q": "the clause about ending the Globex contract early", "expect": ["Contracts/Globex Master Services Agreement 2026.pdf@2-3", "Contracts/Globex Master Services Agreement 2026.docx"], "tag": "contract"},
+    {"q": "how much notice to terminate the Globex agreement", "expect": ["Contracts/Globex Master Services Agreement 2026.pdf@2-3", "Contracts/Globex Master Services Agreement 2026.docx"], "tag": "contract"},
+    {"q": "non-compete", "expect": ["Contracts/Employment contract - Lea Moreau.docx"], "tag": "contract"},
+    {"q": "can we leave the Lyon office before nine years", "expect": ["Contracts/Lyon office lease.pdf", "Contracts/Lyon office lease.odt"], "tag": "contract"},
+    {"q": "how fast must a data breach be reported", "expect": ["Legal/DPA CloudNova (GDPR).pdf"], "tag": "legal"},
+    {"q": "letter about someone copying our trademark", "expect": ["Legal/Trademark notice to Acmee Supplies.docx"], "tag": "legal"},
+    {"q": "price of the Initech acquisition", "expect": ["Legal/Board resolution - Initech acquisition.odt"], "tag": "legal"},
+    {"q": "INV-2026-0187", "expect": ["Finance/CloudNova invoice INV-2026-0187.pdf", "Emails/2026-09-22 Overdue invoice INV-2026-0187.html"], "tag": "exact"},
+    {"q": "dinner with the Globex team receipt", "expect": ["Finance/Scan 2026-09-18 restaurant receipt.pdf"], "tag": "scan"},
+    {"q": "why did gross margin fall", "expect": ["Finance/Q3 2026 finance summary.txt", "Meetings/2026-09-14 Q3 budget review (recording).mp4"], "tag": "finance"},
+    {"q": "phishing email about bank details", "expect": ["Emails/2026-10-07 Security warning - fake invoice email.html"], "tag": "email"},
+    {"q": "root cause of the payment outage", "expect": ["Emails/2026-09-15 Postmortem payment outage.html"], "tag": "email"},
+    {"q": "salary offered to the new data engineer", "expect": ["Emails/2026-10-01 Offer letter Lea Moreau.html", "Contracts/Employment contract - Lea Moreau.docx"], "tag": "email"},
+    {"q": "payment gateway timeout screenshot", "expect": ["Screenshots/Screenshot 2026-09-14 monitoring dashboard.png"], "tag": "screenshot"},
+    {"q": "bug where VAT number breaks checkout", "expect": ["Screenshots/Screenshot 2026-10-01 ACME-1423 ticket.png"], "tag": "screenshot"},
+    {"q": "who reports to the CEO", "expect": ["HR/Org chart October 2026.png"], "tag": "image"},
+    {"q": "can I work from home", "expect": ["HR/Employee handbook.md"], "tag": "hr"},
+    {"q": "parental leave", "expect": ["HR/Leave policy.txt", "Meetings/2026-10-02 All-hands meeting.mp3"], "tag": "hr"},
+    {"q": "when did they decide to freeze hiring", "expect": ["Meetings/2026-09-14 Q3 budget review (recording).mp4@20-50"], "tag": "meeting-moment"},
+    {"q": "a chart of rising cloud costs", "expect": ["Meetings/2026-09-14 Q3 budget review (recording).mp4@5-30"], "tag": "meeting-moment"},
+    {"q": "why was the launch date moved", "expect": ["Meetings/2026-09-21 Product sync.m4a", "Screenshots/Screenshot 2026-09-29 product channel.png"], "tag": "meeting-moment"},
+    {"q": "will people have to move to Lyon", "expect": ["Meetings/2026-10-02 All-hands meeting.mp3@20-45", "Contracts/Lyon office lease.pdf"], "tag": "meeting-moment"}
+  ]
+}

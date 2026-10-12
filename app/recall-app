@@ -1,0 +1,12 @@
+#!/bin/sh
+# Recall for Linux: the desktop app. `recall-app --toggle` shows or hides the search panel.
+here=$(dirname "$(readlink -f "$0")")
+app_id=io.github.pdstn12.Recall
+# Desktop portals (the global shortcut) know an app by its systemd scope, which desktop launchers name after the app.
+# Started any other way (a terminal), Recall would pass for the terminal: it starts itself in a scope of its own.
+if ! grep -q "app-.*$app_id" /proc/self/cgroup 2>/dev/null && command -v systemd-run > /dev/null \
+   && [ -z "$RECALL_NO_SCOPE" ]; then
+  exec systemd-run --user --scope --quiet --collect --unit="app-$app_id-$$" \
+    env RECALL_NO_SCOPE=1 "$0" "$@"
+fi
+exec env PYTHONPATH="$here${PYTHONPATH:+:$PYTHONPATH}" /usr/bin/python3 -m recall_app "$@"

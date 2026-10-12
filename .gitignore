@@ -1,0 +1,11 @@
+# Build output
+/target/
+/Vendor/
+
+# Python
+__pycache__/
+*.pyc
+
+# Evals that name your own files
+evals/*.local.json
+
