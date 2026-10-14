@@ -1,6 +1,6 @@
 //! Vectors are stored as 768 × float16 (1.5 KB each), kept that way in memory too, and scored as float32.
 
-use half::f16;
+use half::{f16, slice::HalfFloatSliceExt};
 
 pub const DIMENSION: usize = 768;
 
@@ -15,9 +15,7 @@ pub fn half(vector: &[f32]) -> Vec<u8> {
 
 /// The float16 rows of a block turned into float32.
 pub fn floats(halves: &[f16], out: &mut [f32]) {
-    for (to, from) in out.iter_mut().zip(halves) {
-        *to = from.to_f32();
-    }
+    halves.convert_to_f32_slice(out);
 }
 
 /// `scores[r] = matrix[r] · vector` for rows of `DIMENSION` floats.
@@ -39,24 +37,25 @@ pub fn multiply(matrix: &[f32], vector: &[f32], scores: &mut [f32]) {
 pub struct VectorStorage {
     pub rows: usize,
     pub halves: Vec<f16>,
+    scratch: Vec<f32>,
 }
 
 impl VectorStorage {
     pub const BLOCK_ROWS: usize = 1024;
 
     pub fn new(rows: usize) -> Self {
-        Self { rows, halves: Vec::with_capacity(rows * DIMENSION) }
+        Self { rows, halves: Vec::with_capacity(rows * DIMENSION), scratch: Vec::new() }
     }
 
     /// Cosine similarity of `query` with every row (all are L2-normalized), a block of rows at a time.
-    pub fn score(&self, query: &[f32]) -> Vec<f32> {
+    pub fn score(&mut self, query: &[f32]) -> Vec<f32> {
         let rows = self.halves.len() / DIMENSION;
         let mut scores = vec![0f32; rows];
-        let mut block = vec![0f32; Self::BLOCK_ROWS * DIMENSION];
+        self.scratch.resize(Self::BLOCK_ROWS.min(rows) * DIMENSION, 0.0);
         let mut row = 0;
         while row < rows {
             let count = Self::BLOCK_ROWS.min(rows - row);
-            let block = &mut block[..count * DIMENSION];
+            let block = &mut self.scratch[..count * DIMENSION];
             floats(&self.halves[row * DIMENSION..(row + count) * DIMENSION], block);
             multiply(block, query, &mut scores[row..row + count]);
             row += count;

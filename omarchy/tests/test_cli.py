@@ -14,6 +14,18 @@ import cli
 
 
 class CliTests(unittest.TestCase):
+    def test_optional_ocr_does_not_contact_service(self):
+        with patch('subprocess.call', return_value=0) as call, patch.object(cli, 'request') as request:
+            self.assertEqual(cli.main(['ocr']), 0)
+        self.assertTrue(call.call_args.args[0][1].endswith('/scripts/setup-ocr.sh'))
+        request.assert_not_called()
+
+    def test_setup_can_skip_ocr(self):
+        with patch('subprocess.run') as run, patch('subprocess.call', return_value=0) as call:
+            self.assertEqual(cli.main(['setup', '--skip-ocr']), 0)
+        run.assert_not_called()
+        self.assertTrue(call.call_args.args[0][1].endswith('/omarchy/install.py'))
+
     def test_search_passes_filters_limit_and_keyword_mode(self):
         output = io.StringIO()
         with patch.object(cli, 'request', return_value={'hits': []}) as request, contextlib.redirect_stdout(output):

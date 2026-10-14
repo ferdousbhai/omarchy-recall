@@ -159,6 +159,12 @@ impl Searcher {
         Ok(())
     }
 
+    /// Refresh keyword metadata now; load updated vectors only when semantic search needs them.
+    pub fn invalidate(&mut self) -> Result<()> {
+        self.release_vectors();
+        self.reload_files()
+    }
+
     /// Frees the vectors' memory; keyword search keeps working.
     pub fn release_vectors(&mut self) {
         self.matrix = None;
@@ -200,7 +206,7 @@ impl Searcher {
 
         // Meaning: score every vector on this query's scale (`meaning`), keep each file's best segment.
         let mut best: HashMap<i64, Best> = HashMap::new();
-        if let (Some(query), Some(matrix)) = (query_vector, &self.matrix) {
+        if let (Some(query), Some(matrix)) = (query_vector, &mut self.matrix) {
             if query.len() == DIMENSION && !self.row_file.is_empty() {
                 let scores = matrix.score(query);
                 let meaning = meaning(&scores, &self.row_modality, Some(&self.row_sets_scale));
@@ -291,7 +297,12 @@ impl Searcher {
                 (file, score)
             })
             .collect();
-        scored.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
+        let compare = |a: &(i64, f64), b: &(i64, f64)| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0));
+        if limit < scored.len() {
+            scored.select_nth_unstable_by(limit, compare);
+            scored.truncate(limit);
+        }
+        scored.sort_unstable_by(compare);
 
         let mut word_rank: HashMap<i64, (usize, WordMatch)> = HashMap::new();
         for (offset, word) in words.iter().enumerate() {
@@ -475,17 +486,17 @@ pub fn meaning(scores: &[f32], modality: &[Modality], sets_scale: Option<&[bool]
         .map(|(score, modality)| f64::from(*score) - means.get(modality).copied().unwrap_or(0.0))
         .collect();
     let (mut count, mut sum) = (0.0, 0.0);
-    for row in 0..centered.len() {
+    for (row, value) in centered.iter().enumerate() {
         if counts(row) {
             count += 1.0;
-            sum += centered[row];
+            sum += value;
         }
     }
     let mean = sum / f64::max(count, 1.0);
     let mut squares = 0.0;
-    for row in 0..centered.len() {
+    for (row, value) in centered.iter().enumerate() {
         if counts(row) {
-            squares += (centered[row] - mean) * (centered[row] - mean);
+            squares += (value - mean) * (value - mean);
         }
     }
     let deviation = (squares / f64::max(count, 1.0)).sqrt().max(0.02);

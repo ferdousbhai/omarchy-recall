@@ -30,6 +30,7 @@ def parser():
     commands.add_parser('toggle', help='Toggle the graphical search panel')
     setup = commands.add_parser('setup', help='Install per-user desktop integration, OCR and agent skill')
     setup.add_argument('--skip-ocr', action='store_true', help='Skip installing optional OCR runtime/models')
+    commands.add_parser('ocr', help='Install optional OCR runtime and models for screenshot/scanned text search')
     skill = commands.add_parser('skill', help='Print the bundled agent skill or install it for coding agents')
     skill.add_subparsers(dest='skill_command').add_parser('install', help='Install in ~/.agents/skills and link Claude Code when available')
     return root
@@ -38,7 +39,6 @@ def parser():
 def main(argv=None):
     arguments = parser().parse_args(argv)
     if arguments.command == 'doctor':
-        import os
         import subprocess
         from pathlib import Path
         binary = Path(__file__).resolve().parents[1] / 'target/release/recall'
@@ -52,6 +52,10 @@ def main(argv=None):
         except (OSError, subprocess.TimeoutExpired) as error:
             print(json.dumps({'error': str(error)}))
             return 1
+    if arguments.command == 'ocr':
+        import subprocess
+        from pathlib import Path
+        return subprocess.call(['bash', str(Path(__file__).resolve().parents[1] / 'scripts/setup-ocr.sh')])
     if arguments.command == 'setup':
         import subprocess
         from pathlib import Path

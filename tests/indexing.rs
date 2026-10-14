@@ -331,6 +331,15 @@ fn float16_vectors_score_across_blocks() {
     let hits = searcher.search("", Some(&target), None, 3, 2.0, None, false).unwrap();
     assert_eq!(hits[0].path, format!("/v/{}.png", rows - 5));
     assert!((hits[0].cosine.unwrap() - 1.0).abs() < 0.002); // float16 rounding only
+    let all = searcher.search("", Some(&target), None, rows, 2.0, None, false).unwrap();
+    assert_eq!(hits.iter().map(|h| &h.path).collect::<Vec<_>>(),
+               all.iter().take(3).map(|h| &h.path).collect::<Vec<_>>());
+    assert!(searcher.search("", Some(&target), None, 0, 2.0, None, false).unwrap().is_empty());
+    searcher.invalidate().unwrap();
+    assert!(!searcher.vectors_loaded);
+    let refreshed = searcher.search("", Some(&target), None, 3, 2.0, None, false).unwrap();
+    assert_eq!(hits.iter().map(|h| &h.path).collect::<Vec<_>>(),
+               refreshed.iter().map(|h| &h.path).collect::<Vec<_>>());
 }
 
 #[test]
@@ -375,9 +384,9 @@ fn sync_keeps_the_rows_of_a_folder_that_went_away() {
         Err(WorkerError::NotFound("no model needed to sync".into()))
     }))
     .unwrap();
-    assert_eq!(indexer.sync(&[drive.clone()]).unwrap().added, 1);
+    assert_eq!(indexer.sync(std::slice::from_ref(&drive)).unwrap().added, 1);
     std::fs::rename(&drive, setup.folder.join("ejected")).unwrap();
-    assert_eq!(indexer.sync(&[drive.clone()]).unwrap().removed, 0); // an ejected drive is not "everything deleted"
+    assert_eq!(indexer.sync(std::slice::from_ref(&drive)).unwrap().removed, 0); // an ejected drive is not "everything deleted"
     assert_eq!(indexer.store.files_under(&[drive.to_string_lossy().into_owned()]).unwrap().len(), 1);
 }
 

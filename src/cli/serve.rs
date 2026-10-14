@@ -213,9 +213,7 @@ impl Service {
             Some("reload") => {
                 // The vectors load again on the next search with meaning, not now: indexing can call this often.
                 for searcher in [self.searcher.as_mut(), self.code_searcher.as_mut()].into_iter().flatten() {
-                    if searcher.vectors_loaded {
-                        searcher.reload()?;
-                    }
+                    searcher.invalidate()?;
                 }
                 Ok(json!({"ok": true}))
             }

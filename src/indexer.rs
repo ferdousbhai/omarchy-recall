@@ -25,6 +25,9 @@ use crate::store::{FileRecord, Info, Store};
 use crate::text::{self, excerpt};
 use crate::tools::ExtractError;
 
+// A committed batch updates progress and persists extraction/embedding outcomes.
+type CommitCallback<'a> = dyn FnMut(usize, &Job, &[Outcome], f64) + 'a;
+
 #[derive(Debug)]
 pub enum IndexerError {
     FingerprintMismatch { index: String, now: String },
@@ -348,7 +351,7 @@ impl Indexer {
     /// Two stages overlap: while the model embeds one job, the next one is read and decoded on another thread (images
     /// scaled, screenshots OCR'd, PDF pages rendered, audio and video decoded).
     fn process(&mut self, jobs: Vec<Job>, should_stop: &mut dyn FnMut() -> bool,
-               committed: &mut dyn FnMut(usize, &Job, &[Outcome], f64), skip: &mut dyn FnMut(&Job) -> bool)
+               committed: &mut CommitCallback<'_>, skip: &mut dyn FnMut(&Job) -> bool)
         -> Result<()> {
         let mut ahead: Option<JoinHandle<Prepared>> = None;
         let mut result = Ok(());

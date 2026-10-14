@@ -32,5 +32,7 @@ mkdir -p "$DEST"
 tar -xzf "$TEMP/$ASSET" -C "$DEST"
 ROOT="$DEST/recall-for-omarchy"
 "$ROOT/target/release/recall" --help >/dev/null
-python3 "$ROOT/omarchy/cli.py" setup
+SETUP_ARGS=()
+if [[ ${RECALL_SKIP_OCR:-0} == 1 ]]; then SETUP_ARGS+=(--skip-ocr); fi
+python3 "$ROOT/omarchy/cli.py" setup "${SETUP_ARGS[@]}"
 printf '\nRecall installed. Open search with Super+Ctrl+Shift+F.\nAgents: recall skill\n'

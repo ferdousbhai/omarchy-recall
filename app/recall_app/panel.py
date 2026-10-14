@@ -9,11 +9,10 @@ Esc close.
 """
 
 import html
-import os
 import re
 import time
 
-from gi.repository import Adw, Gdk, Gio, GLib, Gtk, Pango
+from gi.repository import Gdk, Gio, GLib, Gtk, Pango
 
 from . import highlight, media, opener, previews, x11
 from .log import log

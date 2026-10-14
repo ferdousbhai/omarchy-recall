@@ -19,6 +19,16 @@ omarchy pkg add recall-for-omarchy
 recall setup
 ```
 
+For code/text-only use, skip the optional OCR environment:
+
+```bash
+curl -fsSL https://ferdousbhai.com/recall/install.sh | RECALL_SKIP_OCR=1 bash
+# Add screenshot/scanned-document text recognition later:
+recall ocr
+```
+
+Images still support visual semantic search without OCR; recognizing their text requires OCR.
+
 ## Desktop and agents
 
 **Super+Ctrl+Shift+F** opens search. Arrow keys select, Enter opens at the matching page/line/media interval, and Ctrl+Enter reveals the file. Settings chooses folders; Pause stops background indexing.

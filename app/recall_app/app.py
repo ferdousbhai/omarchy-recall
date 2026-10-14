@@ -57,8 +57,6 @@ class App(Adw.Application):
         from .power import PowerPolicy
         self.power = PowerPolicy(self.settings, self._power_changed)
         self.engine.backfill = self.power.blocker is None
-        from .panel import SearchPanel
-        self.panel = SearchPanel(self)
         self.watchers = []
         self._watch()
         for name, accels, action in (("quit", ["<Control>q"], self.quit_app),
@@ -135,11 +133,11 @@ class App(Adw.Application):
                 self.debug["window"] = self.onboarding
             else:
                 self.debug["select"] = options.get("select")
-                self.panel.show_panel(options.get("search", ""))
+                self._search_panel().show_panel(options.get("search", ""))
                 self.debug["window"] = self.panel
             GLib.timeout_add(6000, self._snapshot)
         elif "search" in options:
-            self.panel.show_panel(options["search"])
+            self._search_panel().show_panel(options["search"])
         elif options.get("toggle"):
             self.toggle_panel()
         elif not options.get("background"):
@@ -150,7 +148,7 @@ class App(Adw.Application):
         if not self.settings.onboarded and not self.settings.roots:
             self.show_onboarding()
         else:
-            self.panel.show_panel()
+            self._search_panel().show_panel()
 
     # MARK: Actions
 
@@ -159,10 +157,16 @@ class App(Adw.Application):
             return self.hotkey_tester()
         self.toggle_panel(timestamp)
 
+    def _search_panel(self):
+        if self.panel is None:
+            from .panel import SearchPanel
+            self.panel = SearchPanel(self)
+        return self.panel
+
     def toggle_panel(self, timestamp=0):
         if not self.settings.onboarded and not self.settings.roots:
             return self.show_onboarding()
-        self.panel.toggle(timestamp)
+        self._search_panel().toggle(timestamp)
 
     def open_row(self, row):
         opener.open_row(row, self.settings.code_editor, opener.landmark(row))
@@ -182,14 +186,16 @@ class App(Adw.Application):
         self.onboarding.present()
 
     def choose_folders(self):
-        self.panel.hide_panel()
+        if self.panel:
+            self.panel.hide_panel()
         if not self.settings.onboarded:
             return self.show_onboarding()
         self.show_settings("folders")
         self.settings_window.add_folders()
 
     def choose_code_folders(self):
-        self.panel.hide_panel()
+        if self.panel:
+            self.panel.hide_panel()
         self.show_settings("code")
         self.settings_window.add_code_folders()
 

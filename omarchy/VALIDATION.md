@@ -32,3 +32,35 @@ Vulkan GPU update (Apple M1 Max, Mesa Honeykrisp 26.2.4):
 - Explicit unavailable CUDA/invalid backend requests fail clearly. Automatic selection succeeds on CPU when no Vulkan driver is available.
 
 - Published v0.2.0: CPU fallback and real-model software-Vulkan smoke tests passed on both x86_64 and aarch64 hosted runners: https://github.com/ferdousbhai/recall-for-omarchy/actions/runs/38543459225. The published ARM binary also passed on the physical M1 Max GPU. Native v0.2.0 Arch packaging/checks passed with `makepkg --cleanbuild --nodeps`.
+
+
+## Performance and cleanup review — 2026-10-14
+
+Implemented lazy fallback GTK panel construction; deferred vector loading after index updates;
+partial candidate selection with deterministic final ordering; reusable float32 conversion scratch;
+and bulk float16 conversion through the existing `half` dependency. Bundles preserve shared-library
+symlinks and use portable checksum filenames. `RECALL_SKIP_OCR=1` skips OCR in the bash installer;
+`recall ocr` installs it later. OCR remains enabled by default to preserve screenshot text search.
+
+Synthetic vector-only benchmark on the M1 Max, five warmed scoring runs per size:
+
+| Vectors | Before bulk conversion (ms) | After (ms) | Float16 storage |
+| --- | --- | --- | --- |
+| 10,000 | 13.06 | 5.55 | 15.36 MB |
+| 100,000 | 89.60 | 47.62 | 153.6 MB |
+| 1,000,000 | 927.24 | 484.29 | 1.536 GB |
+
+Reproduce with `cargo run --release --example vector_bench`. These are synthetic scoring timings,
+not end-to-end retrieval or a representative quality evaluation. Exact search remains linear;
+an approximate index would add complexity and a recall tradeoff, so this review does not add one.
+The v0.3.0 ARM bundle contained 13.61 MiB of duplicate shared-library alias bytes; preserving
+symlinks removes those duplicates (compressed savings vary). Runtime dependencies remain unchanged.
+GTK lazy loading removes unnecessary construction but does not eliminate GTK settings dependencies.
+
+Validation: 77 Rust tests including model reference vectors; 16 Python integration tests in the
+checkout and extracted bundle; clean Clippy with warnings denied; clean Ruff F checks; shell syntax,
+byte compilation, relocatable Vulkan device detection, checksum verification, and real-model CPU
+smoke. Ranking tests compare limited results to the full ordering and exercise lazy invalidation.
+Final review found no further concrete low-risk cleanup in the reviewed paths. This is not a claim
+that no future performance improvement is possible; large-index ANN and alternative OCR stacks
+remain workload/quality tradeoffs requiring separate evidence.

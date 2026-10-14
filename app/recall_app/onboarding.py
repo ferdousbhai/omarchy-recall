@@ -3,7 +3,7 @@ ready. The model starts downloading at "Get Started", and indexing starts as soo
 
 import os
 
-from gi.repository import Adw, GLib, Gtk, Pango
+from gi.repository import Adw, Gtk, Pango
 
 from . import hotkey as hotkeys
 from . import opener, paths, widgets
