@@ -10,27 +10,16 @@ Describe a photo, find a document passage, jump to a recording interval, or sear
 curl -fsSL https://ferdousbhai.com/recall/install.sh | bash
 ```
 
-Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, checksum-verified release, installs runtime dependencies through Omarchy, and configures the desktop integration and agent skill. Vulkan GPU acceleration is included on both architectures, with CPU fallback. Apple Silicon on Linux uses Asahi’s Honeykrisp driver; the installer adds `vulkan-asahi` on Apple machines. Model files (865 MB) and OCR models download once. Initial indexing takes time.
+Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, checksum-verified release, installs runtime dependencies through Omarchy, and configures the desktop integration and agent skill. Vulkan GPU acceleration is included on both architectures, with CPU fallback. Apple Silicon on Linux uses Asahi’s Honeykrisp driver; the installer adds `vulkan-asahi` on Apple machines. Embedding model files (865 MB) download once. OCR uses Omarchy’s bundled Tesseract and English language data. Initial indexing takes time.
 
 [Omarchy package PR #1066](https://github.com/omacom/omarchy-pkgs/pull/1066) awaits upstream build approval and publication. Once published in your configured channel:
 
 ```bash
 omarchy pkg add recall-for-omarchy
-recall setup --skip-ocr
-# Optional OCR:
-omarchy pkg add uv
-recall ocr
+recall setup
 ```
 
-For code/text-only use, skip the optional OCR environment:
-
-```bash
-curl -fsSL https://ferdousbhai.com/recall/install.sh | RECALL_SKIP_OCR=1 bash
-# Add screenshot/scanned-document text recognition later:
-recall ocr
-```
-
-Images still support visual semantic search without OCR; recognizing their text requires OCR.
+OCR works through the system `tesseract` executable, without Python or a separate environment. `recall ocr` reports installed recognition languages; additional Tesseract language packs are picked up when indexing workers restart. Images still support visual semantic search when OCR is unavailable.
 
 ## Desktop and agents
 
@@ -46,7 +35,7 @@ recall skill
 recall skill install
 ```
 
-The CLI and background coordinator are native Rust. The search panel and settings use QML. Python is needed only for optional OCR; GTK is not required. The CLI outputs JSON with meaningful exit codes. The embedded skill installs to the shared agents skill directory, with Claude Code linking when available. Searching never opens a window. The background service must be running. Only selected folders are searched; code repositories require explicit selection. Audio matches point to intervals, not word-level transcripts.
+The CLI and background coordinator are native Rust. The search panel and settings use QML. Python and GTK are not required at runtime. The CLI outputs JSON with meaningful exit codes. The embedded skill installs to the shared agents skill directory, with Claude Code linking when available. Searching never opens a window. The background service must be running. Only selected folders are searched; code repositories require explicit selection. Audio matches point to intervals, not word-level transcripts.
 
 [Usage and development](omarchy/README.md) · [Website](https://ferdousbhai.com/recall)
 

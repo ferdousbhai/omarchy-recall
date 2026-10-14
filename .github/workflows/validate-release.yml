@@ -5,7 +5,7 @@ on:
       version:
         description: Release tag to validate
         required: true
-        default: v0.4.1
+        default: v0.4.2
 permissions:
   contents: read
 jobs:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg poppler-utils libvips-tools libvulkan1 mesa-vulkan-drivers
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng ffmpeg poppler-utils libvips-tools libvulkan1 mesa-vulkan-drivers
       - env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.version }}
@@ -33,6 +33,8 @@ jobs:
           digest=$(awk 'NR==1 {print $1}' "recall-for-omarchy-$ARCH.tar.gz.sha256")
           printf '%s  %s\n' "$digest" "recall-for-omarchy-$ARCH.tar.gz" | sha256sum --check
           tar -xzf "recall-for-omarchy-$ARCH.tar.gz"
+      - name: Verify system OCR availability
+        run: released/recall-for-omarchy/target/release/recall ocr
       - name: Download and verify pinned model files
         run: |
           python3 - <<'PY'

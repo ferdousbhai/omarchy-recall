@@ -23,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build ffmpeg poppler-utils libvips-tools libvulkan-dev glslc spirv-headers
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng clang cmake ninja-build ffmpeg poppler-utils libvips-tools libvulkan-dev glslc spirv-headers
       - run: scripts/build-llama.sh
       - run: cargo build --release --locked && cargo test --release --locked
       - run: omarchy/bundle.sh

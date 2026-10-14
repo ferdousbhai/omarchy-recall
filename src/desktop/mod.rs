@@ -177,7 +177,7 @@ fn output(reply: Value) -> i32 {
         0
     }
 }
-const HELP: &str = "recall — local semantic search for files and code (JSON output)\n\nCommands:\n  search QUERY [--code] [--kind KIND] [--limit 1..100] [--keyword-only]\n  text SEGMENT_ID [--code]\n  status | doctor | pause | resume\n  models                              pinned model download manifest\n  settings | toggle\n  config [set KEY JSON_VALUE]\n  skill [install]\n  setup [--skip-ocr]\n  ocr\n\nExit codes: 0 success (including no matches), 1 runtime error, 2 invalid arguments.\nSearch requires recall-for-omarchy.service. Settings opens the native Omarchy panel.";
+const HELP: &str = "recall — local semantic search for files and code (JSON output)\n\nCommands:\n  search QUERY [--code] [--kind KIND] [--limit 1..100] [--keyword-only]\n  text SEGMENT_ID [--code]\n  status | doctor | pause | resume\n  models                              pinned model download manifest\n  settings | toggle\n  config [set KEY JSON_VALUE]\n  skill [install]\n  setup [--skip-ocr]\n  ocr                                 system OCR languages and availability\n\nExit codes: 0 success (including no matches), 1 runtime error, 2 invalid arguments.\nSearch requires recall-for-omarchy.service. Settings opens the native Omarchy panel.";
 
 fn payload(args: &[String]) -> Result<Value> {
     let command = args.first().map(String::as_str).unwrap_or("");
@@ -315,15 +315,28 @@ pub fn run(args: Vec<String>) -> Result<i32> {
             }
         }
         "setup" if args.len() == 1 || args == ["setup", "--skip-ocr"] => {
-            if args.len() == 1 {
-                checked(Command::new("bash").arg(root()?.join("scripts/setup-ocr.sh")))?;
-            }
+            // Retain --skip-ocr for older installation commands; OCR uses system packages now.
             install::desktop()?;
             Ok(0)
         }
         "ocr" if args.len() == 1 => {
-            checked(Command::new("bash").arg(root()?.join("scripts/setup-ocr.sh")))?;
-            Ok(0)
+            let result = Command::new("timeout")
+                .args(["--kill-after=1s", "5s", "tesseract", "--list-langs"])
+                .output()
+                .context("Cannot check system OCR")?;
+            if !result.status.success() {
+                bail!("System OCR unavailable; install tesseract and tesseract-data-eng through Omarchy");
+            }
+            let languages: Vec<_> = String::from_utf8_lossy(&result.stdout)
+                .lines()
+                .skip(1)
+                .filter(|lang| *lang != "osd")
+                .map(str::to_owned)
+                .collect();
+            if languages.is_empty() {
+                bail!("No OCR languages installed; install tesseract-data-eng through Omarchy");
+            }
+            Ok(output(json!({"engine":"tesseract", "languages":languages})))
         }
         "settings" | "toggle" if args.len() == 1 => {
             toggle(command == "settings")?;

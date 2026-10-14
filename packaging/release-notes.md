@@ -1,12 +1,13 @@
-Recall for Omarchy 0.4.1 consolidates desktop coordination and the public CLI into native Rust.
+Recall for Omarchy 0.4.2 uses Omarchy’s bundled Tesseract for OCR.
 
-- `recall` is the native JSON CLI; its bundled agent skill is compiled directly from Markdown.
-- Search and settings share the Omarchy QML panel. The Python/GTK application and Python socket bridge are removed.
-- Rust owns folder watching, power policy, verified model downloads, indexing controls and page/line/timestamp-aware opening.
-- `recall-engine` keeps search and indexing workers isolated so model memory can be released independently.
-- Existing models, indexes and selected folders are preserved. Vulkan GPU acceleration and CPU fallback remain available on x86_64 and aarch64, including Apple Silicon Linux.
-- CLI/desktop use no Python or GTK runtime. Optional OCR retains its isolated Python environment; skip it with `RECALL_SKIP_OCR=1` in the bash installer and add it later with `recall ocr`.
-- Vector scoring uses bulk float16 conversion and reusable scratch memory; candidate selection avoids sorting the entire result set. Shared-library aliases remain symlinks.
+- No Python runtime, uv environment, RapidOCR, ONNX Runtime, or separate OCR model downloads are needed.
+- Screenshot and scanned-PDF text extraction use installed Tesseract language packs, English first.
+- OCR has a 30-second per-image deadline, bounded output, and child cleanup. Failed images do not disable subsequent OCR.
+- `recall ocr` reports system OCR availability and recognition languages as JSON without installing anything.
+- The installer installs Tesseract and English data through Omarchy. Existing indexes, models and folders are preserved; already-indexed files are not automatically re-OCRed.
+- The native `recall` CLI, bundled agent skill, QML panel, CPU fallback and Vulkan acceleration remain available on x86_64 and aarch64. OCR itself runs on CPU.
+
+Old optional OCR environments are no longer used; they are left on disk for users to remove when ready. Recognition quality can differ from PaddleOCR, particularly on photos and complex layouts; the synthetic text fixture is a regression check, not an accuracy benchmark.
 
 Install: `curl -fsSL https://ferdousbhai.com/recall/install.sh | bash`
 

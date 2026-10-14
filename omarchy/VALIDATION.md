@@ -98,3 +98,15 @@ The pending 0.4.0 build was cancelled during the final scan. Version 0.4.1 also 
 folder scope and exclusions for retained search hits, indexed passages and opening actions;
 empty selections return no hits. Regression tests cover this inherited edge case. Downloads
 are deferred when no folders are selected. Existing cached data remains intact.
+
+## System OCR (0.4.2)
+
+Replaced the optional RapidOCR Python environment with system Tesseract, supplied by Omarchy.
+The Rust adapter bounds each image to 30 seconds and both pipes to 1 MiB, reaps the child,
+and starts a fresh process per image so failures do not poison later OCR.
+The fixture `tests/reference/ocr.png` contains synthetic English text; integration tests check
+recognition, recovery after invalid input, paths containing spaces, and service-independent CLI
+OCR diagnostics. Unit tests check timeout recovery, failing exits and excessive stdout/stderr.
+A manual comparison on the fixture produced identical text from Tesseract and the previous
+PP-OCRv5 helper. This does not establish general accuracy parity on photos or complex layouts.
+Existing indexed content is preserved; the engine does not automatically re-OCR unchanged files.

@@ -30,8 +30,7 @@ install_packages() {
     omarchy pkg add "$@" < /dev/null
   fi
 }
-DEPS=(curl jq ffmpeg poppler libvips xdg-utils xdg-terminal-exec vulkan-icd-loader glib2)
-if [[ ${RECALL_SKIP_OCR:-0} != 1 ]]; then DEPS+=(uv); fi
+DEPS=(curl jq ffmpeg poppler libvips xdg-utils xdg-terminal-exec vulkan-icd-loader glib2 tesseract tesseract-data-eng)
 install_packages "${DEPS[@]}"
 # Apple GPUs on Linux use the Asahi Vulkan userspace driver.
 if [[ -r /proc/device-tree/model ]] && grep -aq Apple /proc/device-tree/model; then
@@ -42,7 +41,6 @@ mkdir -p "$DEST"
 tar -xzf "$TEMP/$ASSET" -C "$DEST"
 ROOT="$DEST/recall-for-omarchy"
 "$ROOT/target/release/recall-engine" --help >/dev/null
-SETUP_ARGS=()
-if [[ ${RECALL_SKIP_OCR:-0} == 1 ]]; then SETUP_ARGS+=(--skip-ocr); fi
-"$ROOT/target/release/recall" setup "${SETUP_ARGS[@]}"
+# Also works when RECALL_VERSION selects an older release with optional Python OCR.
+"$ROOT/target/release/recall" setup --skip-ocr
 printf '\nRecall installed. Open search with Super+Ctrl+Shift+F.\nAgents: recall skill\n'

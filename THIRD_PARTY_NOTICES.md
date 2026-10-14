@@ -60,9 +60,8 @@ The engine's Rust crates (rusqlite with SQLite, serde, serde_json, regex, half, 
 anyhow, unicode-normalization, unicode-segmentation, unicode-general-category, cc): MIT or Apache License
 2.0 (SQLite: public domain). `cargo tree` lists them with their versions.
 
-PaddleOCR's PP-OCR models (https://github.com/PaddlePaddle/PaddleOCR), run through
-RapidOCR (https://github.com/RapidAI/RapidOCR) on ONNX Runtime: Apache License 2.0,
-MIT and MIT. Installed into a Python environment by scripts/setup-ocr.sh, not shipped.
+Tesseract (https://github.com/tesseract-ocr/tesseract), Apache License 2.0, is
+used as a separate system program for OCR and is not included.
 
 ffmpeg, poppler, libvips, unzip and catdoc are used as separate programs from the
 system and are not included.

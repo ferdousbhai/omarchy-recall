@@ -1,18 +1,16 @@
 # Recall for Omarchy
 
-Recall has a native Rust CLI and coordinator, a QML desktop panel/settings form, and isolated Rust workers for indexing and search. llama.cpp supplies the C/C++ inference runtime. Python is used only by optional OCR and development benchmarks/smoke scripts; there is no Python or GTK desktop daemon.
+Recall has a native Rust CLI and coordinator, a QML desktop panel/settings form, and isolated Rust workers for indexing and search. llama.cpp supplies the C/C++ inference runtime. OCR uses Omarchy’s system Tesseract. Python is used only for development benchmarks/smoke scripts; there is no Python runtime requirement.
 
 ## Install from source
 
-Install Rust, a C/C++ compiler, CMake/Ninja, FFmpeg, Poppler, libvips, curl, jq, and the appropriate Vulkan driver. Omarchy supplies Quickshell and desktop utilities. See scripts/build-llama.sh for optional CUDA and Vulkan build detection.
+Install Rust, a C/C++ compiler, CMake/Ninja, FFmpeg, Poppler, libvips, curl, jq, Tesseract with English language data, and the appropriate Vulkan driver. Omarchy supplies Quickshell and desktop utilities. See scripts/build-llama.sh for optional CUDA and Vulkan build detection.
 
 ```sh
 scripts/build-llama.sh
 cargo build --release --locked
-./target/release/recall setup --skip-ocr
-# Optional screenshot/scanned-page text recognition:
-omarchy pkg add uv
-recall ocr
+./target/release/recall setup
+recall ocr # report system OCR languages
 ```
 
 Keep the checkout in a permanent location: launchers and the service refer to it. Source and release installation use the same Rust `setup` command. The installer preserves existing settings, indexes and models. Models download once from a pinned revision and are SHA-256 verified before use; cached copies are verified too. `RECALL_OFFLINE=1` disables automatic downloads for offline operation.
@@ -60,7 +58,7 @@ RECALL_DEVICE=vulkan python3 omarchy/smoke.py
 omarchy/bundle.sh
 ```
 
-Bundles contain both native executables, relocatable inference libraries, QML, the skill, OCR source/setup, and smoke-test fixtures. Shared-library aliases remain symlinks. Models and personal indexes are excluded. Python and GTK are not required for CLI or desktop operation. Optional OCR uses uv's isolated Python environment.
+Bundles contain both native executables, relocatable inference libraries, QML, the skill, and smoke-test fixtures. Shared-library aliases remain symlinks. Models and personal indexes are excluded. Python and GTK are not required for CLI or desktop operation. OCR uses the installed Tesseract languages (English first), with a 30-second limit per image and bounded output. Failed images do not disable subsequent OCR. Additional language packs require restarting indexing workers.
 
 The installer detects the running shell's configuration path and adapts the local ShellColor compatibility rename. No files under /usr/share/omarchy are modified.
 
