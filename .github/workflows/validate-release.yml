@@ -51,7 +51,7 @@ jobs:
         run: RECALL_DEVICE=cpu python3 released/omarchy-recall/omarchy/smoke.py
       - name: Verify packaged Vulkan plugin
         run: |
-          released/omarchy-recall/target/release/recall devices
-          RECALL_DEVICE=vulkan python3 released/omarchy-recall/omarchy/smoke.py
+          GGML_VK_VISIBLE_DEVICES=0 RECALL_DEVICE=vulkan released/omarchy-recall/target/release/recall devices
+          GGML_VK_VISIBLE_DEVICES=0 RECALL_DEVICE=vulkan python3 released/omarchy-recall/omarchy/smoke.py
         # Hosted runners exercise Vulkan through Mesa software rendering;
         # Apple M1 Max hardware correctness/performance is checked locally.
