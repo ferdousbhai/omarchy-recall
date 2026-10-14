@@ -1,6 +1,6 @@
 # Recall for Omarchy
 
-A native Quickshell panel and bar button backed by Recall's local multimodal search engine. Based on upstream Recall (MIT); its original README, license, and third-party notices are preserved.
+A native Quickshell panel and bar button, an agent CLI, and a bundled usage skill backed by Recall's local multimodal search engine. Based on upstream Recall (MIT); its original README, license, and third-party notices are preserved.
 
 ## Install from source
 
@@ -15,7 +15,7 @@ app/install.sh
 python3 omarchy/install.py
 ```
 
-Run `omarchy/install.py` from a permanent checkout: the launchers and service refer to this path. The first start downloads 865 MB of pinned, SHA-256-verified model files. Initial indexing covers existing Documents and Pictures folders, plus this checkout for code search. Existing Recall settings are preserved.
+Run `omarchy/install.py` from a permanent checkout: the launchers and service refer to this path. The first start downloads 865 MB of pinned, SHA-256-verified model files. Initial indexing covers existing Documents and Pictures folders. Choose code repositories explicitly in Settings. Existing Recall settings are preserved.
 
 The installer reserves **Super+Ctrl+Shift+F**. Check `omarchy menu keybindings --print` before installation on another machine and change the installer binding if occupied. Existing files are backed up with timestamps. No root access or edits under `/usr/share/omarchy` are needed.
 
