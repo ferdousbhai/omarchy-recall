@@ -1,0 +1,45 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: sudo apt-get update && sudo apt-get install -y cmake ninja-build ffmpeg poppler-utils libvips-tools python3-gi gir1.2-gtk-4.0 gir1.2-adw-1
+      - run: scripts/build-llama.sh
+      - run: cargo build --release --locked && cargo test --release --locked
+      - run: python3 -m unittest discover -s omarchy/tests -v
+      - run: omarchy/bundle.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recall-${{ matrix.arch }}
+          path: dist/*
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* install.sh --verify-tag --title "Recall for Omarchy $GITHUB_REF_NAME" --notes-file packaging/release-notes.md

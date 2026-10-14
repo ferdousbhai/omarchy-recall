@@ -53,11 +53,18 @@ settings_path.parent.mkdir(parents=True, exist_ok=True)
 if not settings_path.exists():
     settings_path.write_text(json.dumps({
         'roots': [str(home / name) for name in ('Documents', 'Pictures') if (home / name).is_dir()],
-        'code_roots': [str(repo)], 'code_editor': 'nvim', 'hotkey': '',
+        'code_roots': [], 'code_editor': 'nvim', 'hotkey': '',
         'onboarded': True, 'encoder_idle_seconds': 120,
         'index_directory': str(data / 'recall/index'), 'models_directory': str(data / 'recall/Models'),
     }, indent=2) + '\n')
     settings_path.chmod(0o600)
+
+desktop = data / 'applications/io.github.pdstn12.Recall.desktop'
+desktop.parent.mkdir(parents=True, exist_ok=True)
+desktop.write_text((repo / 'app/data/io.github.pdstn12.Recall.desktop').read_text().replace('@EXEC@', str(repo / 'app/recall-app')))
+icon = data / 'icons/hicolor/scalable/apps/io.github.pdstn12.Recall.svg'
+icon.parent.mkdir(parents=True, exist_ok=True)
+shutil.copy2(repo / 'app/data/io.github.pdstn12.Recall.svg', icon)
 
 plugin = config / 'omarchy/plugins/ferdous.recall'
 plugin.mkdir(parents=True, exist_ok=True)
@@ -102,6 +109,7 @@ if bindings.exists() and marker not in bindings.read_text():
 
 subprocess.run(['systemctl', '--user', 'daemon-reload'], check=True)
 subprocess.run(['systemctl', '--user', 'enable', '--now', 'omarchy-recall.service'], check=True)
+subprocess.run(['systemctl', '--user', 'restart', 'omarchy-recall.service'], check=True)
 subprocess.run(['omarchy-shell', 'shell', 'rescanPlugins'], check=True, env=shell_env)
 subprocess.run(['omarchy', 'plugin', 'enable', 'ferdous.recall'], check=True, env=shell_env)
 print('Installed. Super+Ctrl+Shift+F opens Recall. omarchy-recall settings chooses folders.')

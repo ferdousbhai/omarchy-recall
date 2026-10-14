@@ -27,6 +27,8 @@ def parser():
     commands.add_parser('resume', help='Resume background indexing')
     commands.add_parser('settings', help='Open graphical settings (explicit GUI action)')
     commands.add_parser('toggle', help='Toggle the graphical search panel')
+    setup = commands.add_parser('setup', help='Install per-user desktop integration, OCR and agent skill')
+    setup.add_argument('--skip-ocr', action='store_true', help='Skip installing optional OCR runtime/models')
     skill = commands.add_parser('skill', help='Print the bundled agent skill or install it for coding agents')
     skill.add_subparsers(dest='skill_command').add_parser('install', help='Install in ~/.agents/skills and link Claude Code when available')
     return root
@@ -34,6 +36,13 @@ def parser():
 
 def main(argv=None):
     arguments = parser().parse_args(argv)
+    if arguments.command == 'setup':
+        import subprocess
+        from pathlib import Path
+        repo = Path(__file__).resolve().parents[1]
+        if not arguments.skip_ocr:
+            subprocess.run(['bash', str(repo / 'scripts/setup-ocr.sh')], check=True)
+        return subprocess.call([sys.executable, str(repo / 'omarchy/install.py')])
     if arguments.command == 'skill':
         from agent_skill import SKILL_TEXT, install
         if arguments.skill_command == 'install':

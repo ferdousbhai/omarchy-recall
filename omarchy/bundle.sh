@@ -15,7 +15,10 @@ cp target/release/recall Vendor/llama/lib/*.so* "$root/target/release/"
 cp -r app omarchy "$root/"
 mkdir -p "$root/tests"
 cp -r tests/reference "$root/tests/"
-cp LICENSE THIRD_PARTY_NOTICES.md README.md "$root/"
+mkdir -p "$root/scripts"
+cp scripts/setup-ocr.sh "$root/scripts/"
+cp -r ocr "$root/"
+cp LICENSE THIRD_PARTY_NOTICES.md README.md UPSTREAM_README.md "$root/"
 find "$root" -type d -name __pycache__ -prune -exec rm -rf {} +
 tar -C "$stage" -czf "$out/omarchy-recall-$(uname -m).tar.gz" omarchy-recall
 sha256sum "$out/omarchy-recall-$(uname -m).tar.gz" > "$out/omarchy-recall-$(uname -m).tar.gz.sha256"

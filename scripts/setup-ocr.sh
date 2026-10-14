@@ -6,11 +6,11 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 DEST=${1:-${XDG_DATA_HOME:-$HOME/.local/share}/recall/ocr}
 command -v uv > /dev/null || { echo "needs uv: https://docs.astral.sh/uv/" >&2; exit 1; }
-RUNTIME=onnxruntime
-if command -v nvidia-smi > /dev/null && nvidia-smi -L > /dev/null 2>&1; then RUNTIME=onnxruntime-gpu; fi
+RUNTIME=onnxruntime==1.31.0
+if command -v nvidia-smi > /dev/null && nvidia-smi -L > /dev/null 2>&1; then RUNTIME=onnxruntime-gpu==1.31.0; fi
 
 uv venv --quiet --allow-existing --python 3.12 "$DEST"
-uv pip install --quiet --python "$DEST/bin/python" "rapidocr>=3.4" "$RUNTIME"
+uv pip install --quiet --python "$DEST/bin/python" "rapidocr==3.10.0" "$RUNTIME"
 cp ocr/recall_ocr.py "$DEST/recall_ocr.py"
 cat > "$DEST/bin/recall-ocr" <<WRAPPER
 #!/bin/sh
