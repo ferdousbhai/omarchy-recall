@@ -57,7 +57,10 @@ VULKAN=$([[ "$BACKENDS" == *vulkan* ]] && echo ON || echo OFF)
 cmake -S "$SOURCE" -B "$B" -G "$GENERATOR" "${COMMON[@]}" -DBUILD_SHARED_LIBS=ON -DGGML_BACKEND_DL=ON \
   -DGGML_CPU_ALL_VARIANTS=ON -DGGML_CUDA="$CUDA" -DGGML_VULKAN="$VULKAN" -DGGML_BLAS=OFF \
   -DCMAKE_INSTALL_RPATH='$ORIGIN' -DCMAKE_BUILD_WITH_INSTALL_RPATH=ON > /dev/null
-cmake --build "$B" --config Release -j "$(nproc)" > /dev/null
+if ! cmake --build "$B" --config Release -j "${RECALL_BUILD_JOBS:-$(nproc)}" > "$B/build.log" 2>&1; then
+  tail -n 120 "$B/build.log" >&2
+  exit 1
+fi
 rm -f "$OUT"/lib/*.so*
 find "$B/bin" "$B/src" "$B/ggml" "$B/tools/mtmd" -name '*.so*' \( -type f -o -type l \) -exec cp -P {} "$OUT/lib/" \;
 cp "$SOURCE/include/llama.h" "$SOURCE"/ggml/include/*.h "$SOURCE/tools/mtmd/mtmd.h" "$SOURCE/tools/mtmd/mtmd-helper.h" \
