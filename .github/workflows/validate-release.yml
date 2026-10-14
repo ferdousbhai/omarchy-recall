@@ -1,0 +1,50 @@
+name: Validate released model runtime
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Release tag to validate
+        required: true
+        default: v0.1.1
+permissions:
+  contents: read
+jobs:
+  smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            arch: x86_64
+          - runner: ubuntu-24.04-arm
+            arch: aarch64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg poppler-utils libvips-tools
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.version }}
+          ARCH: ${{ matrix.arch }}
+        run: |
+          mkdir -p released
+          gh release download "$RELEASE_TAG" --pattern "omarchy-recall-$ARCH.tar.gz*" --dir released
+          cd released
+          digest=$(awk 'NR==1 {print $1}' "omarchy-recall-$ARCH.tar.gz.sha256")
+          printf '%s  %s\n' "$digest" "omarchy-recall-$ARCH.tar.gz" | sha256sum --check
+          tar -xzf "omarchy-recall-$ARCH.tar.gz"
+      - name: Download and verify pinned model files
+        run: |
+          python3 - <<'PY'
+          import ast, hashlib, pathlib, urllib.request
+          tree = ast.parse(pathlib.Path('app/recall_app/download.py').read_text())
+          values = {node.targets[0].id: ast.literal_eval(node.value) for node in tree.body if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name) and node.targets[0].id in ('REPOSITORY', 'REVISION', 'FILES')}
+          folder = pathlib.Path.home() / '.local/share/recall/Models'
+          folder.mkdir(parents=True, exist_ok=True)
+          for name, size, digest in values['FILES']:
+              path = folder / name
+              urllib.request.urlretrieve(f"https://huggingface.co/{values['REPOSITORY']}/resolve/{values['REVISION']}/{name}", path)
+              assert path.stat().st_size == size
+              assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
+          PY
+      - run: python3 released/omarchy-recall/omarchy/smoke.py
