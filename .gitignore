@@ -9,3 +9,5 @@ __pycache__/
 # Evals that name your own files
 evals/*.local.json
 
+
+/dist/

@@ -28,6 +28,7 @@ class Editor:
 
 
 EDITORS = [
+    Editor("nvim", "Neovim", "xdg-terminal-exec", lambda p, n: ["nvim", f"+{n}", p]),
     Editor("code", "Visual Studio Code", "code", lambda p, n: ["-g", f"{p}:{n}"]),
     Editor("codium", "VSCodium", "codium", lambda p, n: ["-g", f"{p}:{n}"]),
     Editor("cursor", "Cursor", "cursor", lambda p, n: ["-g", f"{p}:{n}"]),

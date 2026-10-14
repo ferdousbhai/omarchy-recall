@@ -71,6 +71,9 @@ class App(Adw.Application):
         if self.settings.onboarded and self.download.needs_start and self.download.phase == "needed":
             self.download.start()
         self._start_desktop()
+        if os.environ.get("RECALL_OMARCHY") == "1":
+            from .omarchy_bridge import Bridge
+            self.omarchy_bridge = Bridge(self)
 
     def _icons(self):
         """The app's icon, from the icon theme once installed, else from this checkout."""
@@ -105,6 +108,8 @@ class App(Adw.Application):
             self.tray = Tray(self)
         except Exception as error:  # noqa: BLE001 - the app works without a tray icon
             log(f"no tray icon: {error!r}")
+        if not self.settings.hotkey:
+            return
         try:
             from .hotkey import Hotkey
             self.hotkey = Hotkey(self, self.settings.hotkey, self._hotkey_pressed)
@@ -216,10 +221,12 @@ class App(Adw.Application):
             self.engine.stop()
         if self.download:
             self.download.cancel()
+        if hasattr(self, "omarchy_bridge"):
+            self.omarchy_bridge.close()
         self.release()
         self.quit()
 
-    def _status_changed(self, status):
+    def _status_changed(self, status=None):
         if self.panel:
             self.panel.update_status()
         if self.tray:

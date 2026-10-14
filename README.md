@@ -1,3 +1,11 @@
+# Omarchy Recall
+
+This checkout adds a native Omarchy search panel, bar button, user service, private socket API, Neovim opening, and ARM validation to upstream Recall. **Super+Ctrl+Shift+F** opens search after installation. See [installation, usage and removal](omarchy/README.md).
+
+Upstream documentation follows.
+
+---
+
 <p align="center"><img src="docs/logo.png" width="96" alt=""></p>
 
 <h1 align="center">Recall</h1>

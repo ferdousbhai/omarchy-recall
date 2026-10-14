@@ -236,7 +236,7 @@ pub struct Keyframes {
 
 /// Samples a frame every `interval` seconds and keeps one per shot: a frame that looks like the previous kept one only
 /// extends it, so screen recordings and lectures shrink a lot. One ffmpeg run writes each frame as a JPEG and, beside
-/// it, as an 8×8 gray thumbnail for the hash; the frames that repeat the previous kept one are deleted again.
+/// it, as an 8×8 RGB thumbnail for the hash and color comparison; the frames that repeat the previous kept one are deleted again.
 pub fn keyframes(path: &Path, interval: f64, max_pixel: u32, max_frames: usize, folder: &Path) -> Result<Keyframes> {
     let probe = Probe::of(path)?;
     let duration = probe.duration;
@@ -248,7 +248,7 @@ pub fn keyframes(path: &Path, interval: f64, max_pixel: u32, max_frames: usize, 
     let prefix = uuid::Uuid::new_v4().to_string();
     let pattern = folder.join(format!("{prefix}-%06d.jpg"));
     let graph = format!(
-        "[0:v]fps=fps={},split=2[big][small];[big]{}[frames];[small]scale=8:8:flags=area,format=gray[hashes]",
+        "[0:v]fps=fps={},split=2[big][small];[big]{}[frames];[small]scale=8:8:flags=area,format=rgb24[hashes]",
         1.0 / step,
         image::fit(max_pixel)
     );
@@ -260,17 +260,25 @@ pub fn keyframes(path: &Path, interval: f64, max_pixel: u32, max_frames: usize, 
     )?;
     let mut frames: Vec<Piece> = Vec::new();
     let mut last = None;
-    for (index, pixels) in made.stdout.chunks_exact(64).enumerate() {
+    let mut last_color: Option<[i32; 3]> = None;
+    for (index, pixels) in made.stdout.chunks_exact(192).enumerate() {
         let frame = folder.join(format!("{prefix}-{:06}.jpg", index + 1));
         if !frame.exists() {
             break;
         }
-        let hash = average_hash(pixels);
-        if repeats(hash, last) {
+        let gray: Vec<u8> = pixels.chunks_exact(3).map(|rgb|
+            ((rgb[0] as u32 * 299 + rgb[1] as u32 * 587 + rgb[2] as u32 * 114) / 1000) as u8).collect();
+        let color: [i32; 3] = std::array::from_fn(|channel|
+            pixels.chunks_exact(3).map(|rgb| rgb[channel] as i32).sum::<i32>() / 64);
+        let hash = average_hash(&gray);
+        let similar_color = last_color.map(|previous|
+            (0..3).all(|channel| (color[channel] - previous[channel]).abs() < 16)).unwrap_or(false);
+        if repeats(hash, last) && similar_color {
             let _ = fs::remove_file(&frame);
             continue;
         }
         last = Some(hash);
+        last_color = Some(color);
         frames.push(Piece { path: frame.to_string_lossy().into_owned(), start: start + index as f64 * step, end: duration });
     }
     if frames.is_empty() && !made.ok() {

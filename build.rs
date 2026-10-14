@@ -22,9 +22,10 @@ fn main() {
         println!("cargo:rustc-link-lib=dylib={name}");
     }
     println!("cargo:rustc-link-lib=m");
-    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib.display());
+    // Prefer bundled libraries when relocated; fall back to the source build for development.
     println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN");
     println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/../lib");
+    println!("cargo:rustc-link-arg=-Wl,-rpath,{}", lib.display());
     println!("cargo:rustc-env=RECALL_LLAMA_LIB_DIR={}", lib.display());
     // The llama.cpp release, for logs and `recall status`.
     let header = std::fs::read_to_string(include.join("llama-build.h")).unwrap_or_default();

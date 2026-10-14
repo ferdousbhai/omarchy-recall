@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "ferdous.recall",
+  "name": "Recall Search",
+  "version": "0.1.0",
+  "author": "Ferdous Bhai",
+  "description": "Local semantic search across documents, pictures, recordings and code",
+  "kinds": ["panel", "bar-widget"],
+  "keepLoaded": true,
+  "entryPoints": {"panel": "SearchPanel.qml", "barWidget": "Widget.qml"},
+  "barWidget": {"displayName": "Recall Search", "category": "Tools", "allowMultiple": false, "defaultSection": "right"}
+}
