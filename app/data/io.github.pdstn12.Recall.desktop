@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=Recall
+Name=Recall for Omarchy
 GenericName=File Search
 Comment=Search your files by what's in them
 Exec=@EXEC@ %U

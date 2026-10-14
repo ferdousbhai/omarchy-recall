@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parents[2]
 def engine_binary():
     """The engine: $RECALL_BIN, else next to the app (a package), else this checkout's build, else $PATH."""
     candidates = [os.environ.get("RECALL_BIN"), Path(__file__).resolve().parents[1] / "bin/recall",
-                  REPO / "target/release/recall", REPO / "target/debug/recall", shutil.which("recall")]
+                  REPO / "target/release/recall", REPO / "target/debug/recall", shutil.which("recall-engine")]
     for candidate in candidates:
         if candidate and os.access(candidate, os.X_OK):
             return str(candidate)

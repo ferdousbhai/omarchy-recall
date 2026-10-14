@@ -64,7 +64,7 @@ class SettingsWindow(Adw.PreferencesWindow):
         group.add(login)
 
         about = self._group(page)
-        about.add(Adw.ActionRow(title="Recall for Linux",
+        about.add(Adw.ActionRow(title="Recall for Omarchy",
                                 subtitle="Search your files by what's in them. Nothing you index leaves this computer."))
 
     def _record_shortcut(self):

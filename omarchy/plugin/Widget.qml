@@ -13,7 +13,7 @@ BarWidget {
     text: "󰍉"
     horizontalMargin: 8
     onPressed: function(mouseButton) {
-      if (root.bar) root.bar.run("omarchy-recall-shell shell toggle ferdous.recall '{}'")
+      if (root.bar) root.bar.run("recall-shell shell toggle ferdous.recall '{}'")
     }
   }
 }

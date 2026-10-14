@@ -9,7 +9,7 @@ mkdir -p "$out"
 out=$(realpath "$out")
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
-root="$stage/omarchy-recall"
+root="$stage/recall-for-omarchy"
 mkdir -p "$root/target/release"
 cp target/release/recall Vendor/llama/lib/*.so* "$root/target/release/"
 cp -r app omarchy "$root/"
@@ -20,6 +20,6 @@ cp scripts/setup-ocr.sh "$root/scripts/"
 cp -r ocr "$root/"
 cp LICENSE THIRD_PARTY_NOTICES.md README.md UPSTREAM_README.md "$root/"
 find "$root" -type d -name __pycache__ -prune -exec rm -rf {} +
-tar -C "$stage" -czf "$out/omarchy-recall-$(uname -m).tar.gz" omarchy-recall
-sha256sum "$out/omarchy-recall-$(uname -m).tar.gz" > "$out/omarchy-recall-$(uname -m).tar.gz.sha256"
-echo "$out/omarchy-recall-$(uname -m).tar.gz"
+tar -C "$stage" -czf "$out/recall-for-omarchy-$(uname -m).tar.gz" recall-for-omarchy
+sha256sum "$out/recall-for-omarchy-$(uname -m).tar.gz" > "$out/recall-for-omarchy-$(uname -m).tar.gz.sha256"
+echo "$out/recall-for-omarchy-$(uname -m).tar.gz"

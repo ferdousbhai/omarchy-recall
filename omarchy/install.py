@@ -34,10 +34,10 @@ if not (repo / 'target/release/recall').exists():
     raise SystemExit('Build the engine first: scripts/build-llama.sh && cargo build --release')
 # The checkout is the installation source, including its pinned shared libraries.
 for name, body in {
-    'omarchy-recall-shell': f'export OMARCHY_PATH="{shell_root}"\nexec omarchy-shell "$@"',
-    'omarchy-recall-client': f'exec /usr/bin/python3 "{repo}/omarchy/client.py" "$@"',
-    'recall': f'exec "{repo}/target/release/recall" "$@"',
-    'omarchy-recall': f'exec /usr/bin/python3 "{repo}/omarchy/cli.py" "$@"',
+    'recall-shell': f'export OMARCHY_PATH="{shell_root}"\nexec omarchy-shell "$@"',
+    'recall-client': f'exec /usr/bin/python3 "{repo}/omarchy/client.py" "$@"',
+    'recall-engine': f'exec "{repo}/target/release/recall" "$@"',
+    'recall': f'exec /usr/bin/python3 "{repo}/omarchy/cli.py" "$@"',
 }.items():
     path = bin_dir / name
     backup(path)
@@ -75,7 +75,7 @@ for source in (repo / 'omarchy/plugin').iterdir():
     else:
         shutil.copy2(source, plugin / source.name)
 
-service = config / 'systemd/user/omarchy-recall.service'
+service = config / 'systemd/user/recall-for-omarchy.service'
 service.parent.mkdir(parents=True, exist_ok=True)
 backup(service)
 service.write_text(f'''[Unit]
@@ -99,17 +99,17 @@ WantedBy=graphical-session.target
 ''')
 
 bindings = config / 'hypr/bindings.lua'
-marker = '-- omarchy-recall: start'
+marker = '-- recall-for-omarchy: start'
 if bindings.exists() and marker not in bindings.read_text():
     backup(bindings)
     with bindings.open('a') as file:
-        file.write('\n' + marker + '\no.bind("SUPER + CTRL + SHIFT + F", "Recall semantic search", "omarchy-recall toggle")\n-- omarchy-recall: end\n')
+        file.write('\n' + marker + '\no.bind("SUPER + CTRL + SHIFT + F", "Recall semantic search", "recall toggle")\n-- recall-for-omarchy: end\n')
     subprocess.run(['hyprctl', 'reload'], check=True)
     subprocess.run(['hyprctl', 'configerrors'], check=True)
 
 subprocess.run(['systemctl', '--user', 'daemon-reload'], check=True)
-subprocess.run(['systemctl', '--user', 'enable', '--now', 'omarchy-recall.service'], check=True)
-subprocess.run(['systemctl', '--user', 'restart', 'omarchy-recall.service'], check=True)
+subprocess.run(['systemctl', '--user', 'enable', '--now', 'recall-for-omarchy.service'], check=True)
+subprocess.run(['systemctl', '--user', 'restart', 'recall-for-omarchy.service'], check=True)
 subprocess.run(['omarchy-shell', 'shell', 'rescanPlugins'], check=True, env=shell_env)
 subprocess.run(['omarchy', 'plugin', 'enable', 'ferdous.recall'], check=True, env=shell_env)
-print('Installed. Super+Ctrl+Shift+F opens Recall. omarchy-recall settings chooses folders.')
+print('Installed. Super+Ctrl+Shift+F opens Recall. recall settings chooses folders.')

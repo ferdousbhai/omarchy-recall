@@ -26,8 +26,8 @@ The installer reserves **Super+Ctrl+Shift+F**. Check `omarchy menu keybindings -
 - Prefix source-code queries with `code:`.
 - Up/Down selects; Enter opens at the page, line or media interval; Ctrl+Enter reveals the file.
 - Settings selects folders, exclusions and editor. Pause/Resume controls background indexing.
-- `omarchy-recall status`, `omarchy-recall search "query"`, `omarchy-recall pause`, `omarchy-recall resume` work in a terminal.
-- `journalctl --user -u omarchy-recall` and `~/.local/share/recall/index/*.log` hold diagnostics.
+- `recall status`, `recall search "query"`, `recall pause`, `recall resume` work in a terminal.
+- `journalctl --user -u recall-for-omarchy` and `~/.local/share/recall/index/*.log` hold diagnostics.
 
 The GTK application owns the indexing worker, inotify watchers, power policy and query process. Its optional Omarchy bridge exposes a mode-0600 Unix socket in the user's runtime directory. Quickshell uses an argument-safe JSON-lines client; no file names or queries are interpolated into shell commands. There is no network listener. Indexes, OCR text and previews remain sensitive local data; normal disk encryption is recommended.
 
@@ -36,44 +36,44 @@ Audio is embedded directly, without transcription: matches point to a window, no
 ## Remove integration
 
 ```sh
-systemctl --user disable --now omarchy-recall.service
+systemctl --user disable --now recall-for-omarchy.service
 omarchy plugin disable ferdous.recall
 ```
 
-Remove the marked `omarchy-recall` block from `~/.config/hypr/bindings.lua` and run `hyprctl reload` then `hyprctl configerrors`. Remove `~/.config/omarchy/plugins/ferdous.recall`, the user service file, and the four installed launchers if no longer needed. `app/install.sh --uninstall` removes the GTK desktop entry. Models, settings and indexes are retained unless you explicitly delete them.
+Remove the marked `recall-for-omarchy` block from `~/.config/hypr/bindings.lua` and run `hyprctl reload` then `hyprctl configerrors`. Remove `~/.config/omarchy/plugins/ferdous.recall`, the user service file, and the four installed launchers if no longer needed. `app/install.sh --uninstall` removes the GTK desktop entry. Models, settings and indexes are retained unless you explicitly delete them.
 
 ## Validation and distribution
 
 `python3 -m unittest discover -s omarchy/tests -v` checks socket permissions, dispatch and result-opening scope. `python3 omarchy/smoke.py` checks actual model inference, image/audio extraction and document/code retrieval in a disposable index (with a relaxed semantic gate because the corpus contains only four files). `RECALL_MODELS=~/.local/share/recall/Models cargo test --release --test reference_vectors -- --nocapture` verifies text, image, frame and speech vectors against pinned references.
 
-`omarchy/bundle.sh` creates `dist/omarchy-recall-<architecture>.tar.gz` and its SHA-256 checksum. Extract to a permanent directory and run `app/install.sh` then `python3 omarchy/install.py`. The binary and shared libraries travel together; models and personal indexes are excluded. This is a user-install bundle, not a pacman/AUR package. It still requires the runtime dependencies listed above. The Vulkan backend was validated against the reference model on an Apple M1 Max running Arch Linux ARM. CUDA remains a source-build option and is not included in the prebuilt release.
+`omarchy/bundle.sh` creates `dist/recall-for-omarchy-<architecture>.tar.gz` and its SHA-256 checksum. Extract to a permanent directory and run `app/install.sh` then `python3 omarchy/install.py`. The binary and shared libraries travel together; models and personal indexes are excluded. This is a user-install bundle, not a pacman/AUR package. It still requires the runtime dependencies listed above. The Vulkan backend was validated against the reference model on an Apple M1 Max running Arch Linux ARM. CUDA remains a source-build option and is not included in the prebuilt release.
 
 The installer detects the running Omarchy shell path and handles the `ShellColor` compatibility rename used by newer Qt installations. If QML edits are cached, restart the shell using that same `OMARCHY_PATH` to preserve any local compatibility copy.
 
 ## Agent CLI and bundled skill
 
-Agents can use the installed `omarchy-recall` command without opening the panel. JSON is the default output. Successful empty searches exit 0, service/search errors exit 1 with an `error` field, and invalid arguments exit 2. The shared background service must be running; `systemctl --user start omarchy-recall` starts it without a panel.
+Agents can use the installed `recall` command without opening the panel. JSON is the default output. Successful empty searches exit 0, service/search errors exit 1 with an `error` field, and invalid arguments exit 2. The shared background service must be running; `systemctl --user start recall-for-omarchy` starts it without a panel.
 
 ```sh
-omarchy-recall --help
-omarchy-recall status
-omarchy-recall search "retry with exponential backoff" --code --limit 5
-omarchy-recall search "payment error" --kind screenshot --limit 5
-omarchy-recall search "release deadline" --kind audio --kind video
-omarchy-recall search "ERR_CONNECTION_RESET" --keyword-only
-omarchy-recall text 123 --code
+recall --help
+recall status
+recall search "retry with exponential backoff" --code --limit 5
+recall search "payment error" --kind screenshot --limit 5
+recall search "release deadline" --kind audio --kind video
+recall search "ERR_CONNECTION_RESET" --keyword-only
+recall text 123 --code
 ```
 
 `text` takes a fresh hit's `segment_id` and returns its full indexed passage. Use `--code` when the hit belongs to the code index. Results include source paths and page/line/time locations; inspect source content before making changes. Audio locations are intervals, not transcripts. Semantic encoder failures are reported explicitly in `encoder_error` and `warning` rather than being presented as successful semantic retrieval.
 
-Like HEY CLI, `omarchy-recall skill` prints the skill embedded in the CLI package, and `omarchy-recall skill install` installs it without contacting the search service. The canonical installed location is `~/.agents/skills/omarchy-recall/SKILL.md`, which shared-skill-aware agents can discover directly. When Claude Code is available, installation links `~/.claude/skills/omarchy-recall` to that directory. Earlier identical Codex copies are migrated to links; custom agent skill directories are preserved.
+Like HEY CLI, `recall skill` prints the skill embedded in the CLI package, and `recall skill install` installs it without contacting the search service. The canonical installed location is `~/.agents/skills/recall/SKILL.md`, which shared-skill-aware agents can discover directly. When Claude Code is available, installation links `~/.claude/skills/recall` to that directory. Earlier identical Codex copies are migrated to links; custom agent skill directories are preserved.
 
-The desktop installer calls the same `skill install` command. [The Markdown source](skills/omarchy-recall/SKILL.md) generates `embedded_skill.py` through `python3 omarchy/embed_skill.py`, also run by the bundle builder. The source and generated content are checked by tests. To remove the skill, remove its shared directory and agent links.
+The desktop installer calls the same `skill install` command. [The Markdown source](skills/recall/SKILL.md) generates `embedded_skill.py` through `python3 omarchy/embed_skill.py`, also run by the bundle builder. The source and generated content are checked by tests. To remove the skill, remove its shared directory and agent links.
 
 ## GPU acceleration
 
-`omarchy-recall doctor` reports the selected indexing device and packaged backend plugins without loading model weights or requiring the service. Automatic selection uses an available GPU, otherwise CPU. Background indexing uses the GPU; short interactive queries use the CPU by default to avoid GPU startup latency.
+`recall doctor` reports the selected indexing device and packaged backend plugins without loading model weights or requiring the service. Automatic selection uses an available GPU, otherwise CPU. Background indexing uses the GPU; short interactive queries use the CPU by default to avoid GPU startup latency.
 
 Apple Silicon Linux needs `vulkan-asahi`; AMD/Intel/NVIDIA machines need their appropriate Vulkan userspace driver. The bash installer adds Asahi's driver on Apple machines. The package declares GPU drivers as optional dependencies. A missing GPU driver leaves CPU search available.
 
-For direct engine testing, `RECALL_DEVICE=cpu|vulkan|cuda|auto recall ...` chooses a backend. An explicitly requested unavailable GPU is an error. Automatic GPU initialization/warmup failures retry on the CPU; native driver crashes cannot be caught by this retry. To force the running service to use CPU indexing, add `Environment=RECALL_DEVICE=cpu` to its systemd user service override and restart it. `omarchy/benchmark.py` compares warmed CPU/Vulkan text, image and audio inference on public fixtures without changing the live index.
+For direct engine testing, `RECALL_DEVICE=cpu|vulkan|cuda|auto recall-engine ...` chooses a backend. An explicitly requested unavailable GPU is an error. Automatic GPU initialization/warmup failures retry on the CPU; native driver crashes cannot be caught by this retry. To force the running service to use CPU indexing, add `Environment=RECALL_DEVICE=cpu` to its systemd user service override and restart it. `omarchy/benchmark.py` compares warmed CPU/Vulkan text, image and audio inference on public fixtures without changing the live index.

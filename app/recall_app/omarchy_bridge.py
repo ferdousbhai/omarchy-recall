@@ -12,7 +12,7 @@ from .results import ResultRow
 
 
 def socket_path():
-    return Path(os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')) / 'omarchy-recall.sock'
+    return Path(os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')) / 'recall-for-omarchy.sock'
 
 
 class Bridge:

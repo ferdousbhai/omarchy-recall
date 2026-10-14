@@ -10,7 +10,7 @@ KINDS = ('image', 'screenshot', 'pdf', 'doc', 'audio', 'video')
 
 
 def parser():
-    root = argparse.ArgumentParser(prog='omarchy-recall', description='Search indexed local files by meaning or exact text. Outputs JSON by default; no GUI is opened.', epilog='Exit codes: 0 success (including no hits), 1 service/search error, 2 invalid arguments. Start the service with: systemctl --user start omarchy-recall')
+    root = argparse.ArgumentParser(prog='recall', description='Search indexed local files by meaning or exact text. Outputs JSON by default; no GUI is opened.', epilog='Exit codes: 0 success (including no hits), 1 service/search error, 2 invalid arguments. Start the service with: systemctl --user start recall-for-omarchy')
     commands = root.add_subparsers(dest='command', required=True)
     search = commands.add_parser('search', help='Search selected folders; code search uses a separate index')
     search.add_argument('query', nargs='+', help='Natural-language description or exact identifier')
@@ -69,7 +69,7 @@ def main(argv=None):
     if arguments.command == 'toggle':
         import os
         from pathlib import Path
-        os.execv(str(Path.home() / '.local/bin/omarchy-recall-shell'), ['omarchy-recall-shell', 'shell', 'toggle', 'ferdous.recall', '{}'])
+        os.execv(str(Path.home() / '.local/bin/recall-shell'), ['recall-shell', 'shell', 'toggle', 'ferdous.recall', '{}'])
     payload = {'op': arguments.command}
     if arguments.command == 'search':
         if not 1 <= arguments.limit <= 100:

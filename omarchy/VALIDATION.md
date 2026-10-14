@@ -31,4 +31,4 @@ Vulkan GPU update (Apple M1 Max, Mesa Honeykrisp 26.2.4):
 - CPU/GPU embedding agreement exceeded cosine 0.999 for all benchmark modalities. Full measurements are in `m1-max-benchmark.json`; reproduce using `python3 omarchy/benchmark.py`.
 - Explicit unavailable CUDA/invalid backend requests fail clearly. Automatic selection succeeds on CPU when no Vulkan driver is available.
 
-- Published v0.2.0: CPU fallback and real-model software-Vulkan smoke tests passed on both x86_64 and aarch64 hosted runners: https://github.com/ferdousbhai/omarchy-recall/actions/runs/38543459225. The published ARM binary also passed on the physical M1 Max GPU. Native v0.2.0 Arch packaging/checks passed with `makepkg --cleanbuild --nodeps`.
+- Published v0.2.0: CPU fallback and real-model software-Vulkan smoke tests passed on both x86_64 and aarch64 hosted runners: https://github.com/ferdousbhai/recall-for-omarchy/actions/runs/38543459225. The published ARM binary also passed on the physical M1 Max GPU. Native v0.2.0 Arch packaging/checks passed with `makepkg --cleanbuild --nodeps`.

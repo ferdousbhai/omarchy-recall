@@ -56,7 +56,7 @@ Item {
   }
   Process {
     id: transport
-    command: [Quickshell.env("HOME") + "/.local/bin/omarchy-recall-client"]
+    command: [Quickshell.env("HOME") + "/.local/bin/recall-client"]
     running: true
     stdinEnabled: true
     stdout: SplitParser {
@@ -84,7 +84,7 @@ Item {
     anchors { top: true; bottom: true; left: true; right: true }
     color: "transparent"
     exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.namespace: "omarchy-recall"
+    WlrLayershell.namespace: "recall-for-omarchy"
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     Rectangle { anchors.fill: parent; color: "#66000000"; MouseArea { anchors.fill: parent; onClicked: root.close() } }

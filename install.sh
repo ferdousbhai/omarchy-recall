@@ -1,7 +1,7 @@
 #!/bin/bash
 # Recall for Omarchy: release installer. No source build, no modifications to packaged Omarchy files.
 set -euo pipefail
-REPOSITORY=ferdousbhai/omarchy-recall
+REPOSITORY=ferdousbhai/recall-for-omarchy
 VERSION=${RECALL_VERSION:-latest}
 [[ $(uname -s) == Linux ]] || { echo 'Recall requires Linux/Omarchy.' >&2; exit 1; }
 ARCH=$(uname -m)
@@ -13,7 +13,7 @@ if [[ $VERSION == latest ]]; then
 fi
 [[ $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Invalid release version.' >&2; exit 1; }
 BASE="https://github.com/$REPOSITORY/releases/download/$VERSION"
-ASSET="omarchy-recall-$ARCH.tar.gz"
+ASSET="recall-for-omarchy-$ARCH.tar.gz"
 TEMP=$(mktemp -d)
 trap 'rm -rf "$TEMP"' EXIT
 curl -fSL --retry 3 "$BASE/$ASSET" -o "$TEMP/$ASSET"
@@ -27,10 +27,10 @@ omarchy pkg add python python-gobject gtk4 libadwaita ffmpeg poppler libvips uv 
 if [[ -r /proc/device-tree/model ]] && grep -aq Apple /proc/device-tree/model; then
   omarchy pkg add vulkan-asahi < /dev/tty
 fi
-DEST="${XDG_DATA_HOME:-$HOME/.local/share}/omarchy-recall/releases/$VERSION"
+DEST="${XDG_DATA_HOME:-$HOME/.local/share}/recall-for-omarchy/releases/$VERSION"
 mkdir -p "$DEST"
 tar -xzf "$TEMP/$ASSET" -C "$DEST"
-ROOT="$DEST/omarchy-recall"
+ROOT="$DEST/recall-for-omarchy"
 "$ROOT/target/release/recall" --help >/dev/null
 python3 "$ROOT/omarchy/cli.py" setup
-printf '\nRecall installed. Open search with Super+Ctrl+Shift+F.\nAgents: omarchy-recall skill\n'
+printf '\nRecall installed. Open search with Super+Ctrl+Shift+F.\nAgents: recall skill\n'

@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 def request(payload):
-    path = Path(os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')) / 'omarchy-recall.sock'
+    path = Path(os.environ.get('XDG_RUNTIME_DIR', f'/run/user/{os.getuid()}')) / 'recall-for-omarchy.sock'
     try:
         with socket.socket(socket.AF_UNIX) as connection:
             connection.settimeout(115)

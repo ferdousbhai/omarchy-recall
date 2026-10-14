@@ -15,8 +15,8 @@ Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, che
 [Omarchy package PR #1066](https://github.com/omacom/omarchy-pkgs/pull/1066) awaits upstream build approval and publication. Once published in your configured channel:
 
 ```bash
-omarchy pkg add omarchy-recall
-omarchy-recall setup
+omarchy pkg add recall-for-omarchy
+recall setup
 ```
 
 ## Desktop and agents
@@ -24,13 +24,13 @@ omarchy-recall setup
 **Super+Ctrl+Shift+F** opens search. Arrow keys select, Enter opens at the matching page/line/media interval, and Ctrl+Enter reveals the file. Settings chooses folders; Pause stops background indexing.
 
 ```bash
-omarchy-recall search "payment error" --kind screenshot --limit 5
-omarchy-recall search "retry with exponential backoff" --code
-omarchy-recall text 123 --code
-omarchy-recall status
-omarchy-recall doctor
-omarchy-recall skill
-omarchy-recall skill install
+recall search "payment error" --kind screenshot --limit 5
+recall search "retry with exponential backoff" --code
+recall text 123 --code
+recall status
+recall doctor
+recall skill
+recall skill install
 ```
 
 The CLI outputs JSON with meaningful exit codes. The embedded skill installs to the shared agents skill directory, with Claude Code linking when available. Searching never opens a window. The background service must be running. Only selected folders are searched; code repositories require explicit selection. Audio matches point to intervals, not word-level transcripts.
