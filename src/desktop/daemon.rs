@@ -192,6 +192,8 @@ impl State {
                     }
                     config[k] = v.clone();
                 }
+                // Reject invalid values here instead of saving a file the daemon would then refuse to load.
+                validate_config(&config)?;
                 save_config(&config)?;
                 Ok(json!({"ok":true,"config":config}))
             }

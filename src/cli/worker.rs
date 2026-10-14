@@ -62,7 +62,7 @@ pub fn serve(args: &Arguments) -> i32 {
                 for embedding in &embeddings {
                     match &embedding.vector {
                         Some(vector) => vector.iter().for_each(|value| bytes.extend_from_slice(&value.to_le_bytes())),
-                        None => bytes.extend(std::iter::repeat(0u8).take(info.dim * 4)),
+                        None => bytes.extend(std::iter::repeat_n(0u8, info.dim * 4)),
                     }
                 }
                 let errors: Vec<Value> =

@@ -64,7 +64,7 @@ pub(super) fn validate_config(value: &Value) -> Result<()> {
         .as_array()
         .context("excluded_types must be an array")?
     {
-        if ext.as_str().map_or(true, |s| {
+        if ext.as_str().is_none_or(|s| {
             s.is_empty() || !s.chars().all(|c| c.is_ascii_alphanumeric())
         }) {
             bail!("Excluded extensions must contain letters/numbers without dots");

@@ -394,7 +394,7 @@ fn evaluate(args: &Arguments) -> Result<()> {
         let rank = hits
             .iter()
             .position(|hit| {
-                targets.iter().any(|(path, range)| hit.path == *path && range.map_or(true, |range| at(hit, range)))
+                targets.iter().any(|(path, range)| hit.path == *path && range.is_none_or(|range| at(hit, range)))
             })
             .map(|position| position + 1);
         if rank.is_some_and(|rank| rank > strong) {

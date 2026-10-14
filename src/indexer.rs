@@ -438,7 +438,23 @@ impl Indexer {
         let folder = self.scratch.join(format!("batch-{}", self.jobs_prepared));
         std::thread::Builder::new()
             .name("recall-prepare".into())
-            .spawn(move || prepare(job, &options, folder))
+            .spawn(move || {
+                // A panic while reading one malformed file must not take down the indexing worker (and then
+                // retry the same file forever): record the batch as failed instead.
+                let batch = job.files.clone();
+                let step = job.step.clone();
+                let scratch = folder.clone();
+                std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| prepare(job, &options, folder)))
+                    .unwrap_or_else(|_| Prepared {
+                        outcomes: (0..batch.len())
+                            .map(|slot| (slot, ("failed".into(), Some("reader crashed on this file".into()))))
+                            .collect(),
+                        batch,
+                        step,
+                        folder: scratch,
+                        payload: Payload::Nothing,
+                    })
+            })
             .expect("thread")
     }
 

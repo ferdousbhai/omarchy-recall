@@ -17,7 +17,7 @@ cp -r omarchy/plugin omarchy/assets omarchy/skills "$root/omarchy/"
 cp omarchy/smoke.py "$root/omarchy/"
 mkdir -p "$root/tests"
 cp -r tests/reference "$root/tests/"
-cp LICENSE THIRD_PARTY_NOTICES.md README.md UPSTREAM_README.md "$root/"
+cp LICENSE THIRD_PARTY_NOTICES.md README.md "$root/"
 find "$root" -type d -name __pycache__ -prune -exec rm -rf {} +
 tar -C "$stage" -czf "$out/recall-for-omarchy-$(uname -m).tar.gz" recall-for-omarchy
 (cd "$out"; sha256sum "recall-for-omarchy-$(uname -m).tar.gz" > "recall-for-omarchy-$(uname -m).tar.gz.sha256")
