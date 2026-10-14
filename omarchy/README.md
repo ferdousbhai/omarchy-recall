@@ -26,7 +26,7 @@ The installer reserves **Super+Ctrl+Shift+F**. Check `omarchy menu keybindings -
 - Prefix source-code queries with `code:`.
 - Up/Down selects; Enter opens at the page, line or media interval; Ctrl+Enter reveals the file.
 - Settings selects folders, exclusions and editor. Pause/Resume controls background indexing.
-- `omarchy-recall status`, `omarchy-recall search "query"`, `omarchy-recall pause`, `omarchy-recall pause off` work in a terminal.
+- `omarchy-recall status`, `omarchy-recall search "query"`, `omarchy-recall pause`, `omarchy-recall resume` work in a terminal.
 - `journalctl --user -u omarchy-recall` and `~/.local/share/recall/index/*.log` hold diagnostics.
 
 The GTK application owns the indexing worker, inotify watchers, power policy and query process. Its optional Omarchy bridge exposes a mode-0600 Unix socket in the user's runtime directory. Quickshell uses an argument-safe JSON-lines client; no file names or queries are interpolated into shell commands. There is no network listener. Indexes, OCR text and previews remain sensitive local data; normal disk encryption is recommended.
@@ -49,3 +49,21 @@ Remove the marked `omarchy-recall` block from `~/.config/hypr/bindings.lua` and 
 `omarchy/bundle.sh` creates `dist/omarchy-recall-<architecture>.tar.gz` and its SHA-256 checksum. Extract to a permanent directory and run `app/install.sh` then `python3 omarchy/install.py`. The binary and shared libraries travel together; models and personal indexes are excluded. This is a user-install bundle, not a pacman/AUR package. It still requires the runtime dependencies listed above. CUDA/Vulkan builds must be validated separately; this installation was tested on aarch64 CPU.
 
 The installer detects the running Omarchy shell path and handles the `ShellColor` compatibility rename used by newer Qt installations. If QML edits are cached, restart the shell using that same `OMARCHY_PATH` to preserve any local compatibility copy.
+
+## Agent CLI and bundled skill
+
+Agents can use the installed `omarchy-recall` command without opening the panel. JSON is the default output. Successful empty searches exit 0, service/search errors exit 1 with an `error` field, and invalid arguments exit 2. The shared background service must be running; `systemctl --user start omarchy-recall` starts it without a panel.
+
+```sh
+omarchy-recall --help
+omarchy-recall status
+omarchy-recall search "retry with exponential backoff" --code --limit 5
+omarchy-recall search "payment error" --kind screenshot --limit 5
+omarchy-recall search "release deadline" --kind audio --kind video
+omarchy-recall search "ERR_CONNECTION_RESET" --keyword-only
+omarchy-recall text 123 --code
+```
+
+`text` takes a fresh hit's `segment_id` and returns its full indexed passage. Use `--code` when the hit belongs to the code index. Results include source paths and page/line/time locations; inspect source content before making changes. Audio locations are intervals, not transcripts. Semantic encoder failures are reported explicitly in `encoder_error` and `warning` rather than being presented as successful semantic retrieval.
+
+The installer copies [the bundled skill](skills/omarchy-recall/SKILL.md) to `${CODEX_HOME:-~/.codex}/skills/omarchy-recall/` and `~/.agents/skills/omarchy-recall/`. New agent sessions can discover it as `omarchy-recall`. The skill ships in the distribution bundle, so it is installed on other machines by the same installer. To remove it, delete those two skill directories along with the integration.

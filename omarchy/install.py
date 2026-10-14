@@ -37,16 +37,21 @@ for name, body in {
     'omarchy-recall-shell': f'export OMARCHY_PATH="{shell_root}"\nexec omarchy-shell "$@"',
     'omarchy-recall-client': f'exec /usr/bin/python3 "{repo}/omarchy/client.py" "$@"',
     'recall': f'exec "{repo}/target/release/recall" "$@"',
-    'omarchy-recall': '''case "${1:-toggle}" in
-  toggle) exec "$HOME/.local/bin/omarchy-recall-shell" shell toggle ferdous.recall '{}' ;;
-  settings) exec "$HOME/.local/bin/omarchy-recall-client" settings ;;
-  *) exec "$HOME/.local/bin/omarchy-recall-client" "$@" ;;
-esac''',
+    'omarchy-recall': f'exec /usr/bin/python3 "{repo}/omarchy/cli.py" "$@"',
 }.items():
     path = bin_dir / name
     backup(path)
     path.write_text('#!/bin/sh\n' + body + '\n')
     path.chmod(0o755)
+
+
+# Bundle the same discoverable skill for Codex and other skill-aware agents.
+skill_source = repo / 'omarchy/skills/omarchy-recall'
+for skill_root in (Path(os.environ.get('CODEX_HOME', home / '.codex')) / 'skills', home / '.agents/skills'):
+    destination = skill_root / 'omarchy-recall'
+    destination.mkdir(parents=True, exist_ok=True)
+    backup(destination / 'SKILL.md')
+    shutil.copy2(skill_source / 'SKILL.md', destination / 'SKILL.md')
 
 settings_path = config / 'recall/settings.json'
 settings_path.parent.mkdir(parents=True, exist_ok=True)

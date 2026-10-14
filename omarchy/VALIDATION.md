@@ -14,3 +14,9 @@ Tested on Arch Linux ARM (aarch64), CPU inference, 2026-10-14.
 Initial Documents/Pictures pass indexed 137 files and skipped one. The new checkout's code is also enabled and indexes in the background. Large additional folders will need their own first pass.
 
 Not validated here: CUDA/Vulkan acceleration, other architectures, word-level audio alignment, and an exhaustive set of external PDF/editor/player applications. Audio matches identify indexed intervals; they do not provide transcripts.
+
+Agent CLI update:
+
+- Eight Python tests passed, covering argument forwarding, code/passage routing, invalid argument rejection, unavailable-service exit status, semantic fallback warnings, and the original bridge/action checks.
+- Installed CLI exercised against the live index: semantic code search with a two-result limit, full passage retrieval, screenshot filtering, and keyword-only search passed.
+- Bundled agent skill passed the skill-creator validator and was installed in both Codex and shared agents skill directories.

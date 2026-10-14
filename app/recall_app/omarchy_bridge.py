@@ -76,7 +76,19 @@ class Bridge:
                     row = ResultRow.from_hit(hit, reply.get('code', False))
                     hit.update(name=row.name, folder=row.folder, location=row.place, code=row.code)
                 complete(reply)
-            app.engine.search(query, found, meaning=request.get('meaning', True), limit=30)
+            kinds = request.get('kinds')
+            allowed = {'image', 'screenshot', 'pdf', 'doc', 'audio', 'video'}
+            if kinds is not None and (not isinstance(kinds, list) or any(kind not in allowed for kind in kinds)):
+                raise ValueError('Invalid search kinds')
+            limit = int(request.get('limit', 30))
+            if not 1 <= limit <= 100:
+                raise ValueError('limit must be between 1 and 100')
+            app.engine.search(query, found, meaning=request.get('meaning', True), kinds=kinds, limit=limit)
+        elif op == 'text':
+            segment = int(request['segment'])
+            if segment <= 0:
+                raise ValueError('segment must be positive')
+            app.engine.request('text', complete, segment=segment, code=bool(request.get('code')))
         elif op == 'prewarm':
             app.engine.prewarm()
             complete({'ok': True})
