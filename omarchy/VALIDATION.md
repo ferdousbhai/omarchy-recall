@@ -64,3 +64,32 @@ smoke. Ranking tests compare limited results to the full ordering and exercise l
 Final review found no further concrete low-risk cleanup in the reviewed paths. This is not a claim
 that no future performance improvement is possible; large-index ANN and alternative OCR stacks
 remain workload/quality tradeoffs requiring separate evidence.
+
+## Native runtime consolidation — 2026-10-14 (0.4.0)
+
+The Python/GTK app and Python CLI/bridge/installer/skill generator are removed. The public
+`recall` binary and coordinator are Rust; the private worker is `recall-engine`. Search and
+settings use QML. Python remains only for optional OCR and developer benchmark/smoke scripts.
+The public executable links to libc/libgcc only; inference plugins are loaded by the worker.
+No additional Rust dependency was introduced. The coordinator measured approximately 3 MiB RSS
+on the M1 Max versus approximately 80 MiB for the earlier Python/GTK coordinator, excluding
+workers and the existing Quickshell desktop process. Timing varies with system load; no CLI
+latency claim is made from the busy development machine.
+
+Regression checks cover JSON arguments/errors, embedded skill and custom-directory preservation,
+private socket mode, duplicate-daemon protection, settings validation/reload, inotify debounce/new
+subdirectories, scoped opening, code lines, media timestamps, shell-special characters, persistent
+worker ownership and executable replacement. Existing extraction, retrieval, reference-vector and
+ranking checks remain. CPU and Vulkan real-model smoke pass. The bash installer was checked for
+native setup, optional OCR dependencies and checksum rejection before changes. QML settings was
+opened and visually inspected on the compatible Omarchy shell. Its save button is pinned outside
+the scrolling content.
+
+The coordinator bounds clients and its search queue, coalesces vector invalidation, and retains
+periodic watch recovery and battery/power-saver policy. Model filenames, revision, sizes and hashes
+now have one Rust source; release validation reads `recall models`. Existing settings, selected
+folders, downloaded models and indexes are preserved.
+
+The final scan of runtime dependencies, stale Python/GTK references, process lifecycle, packaging
+and changed paths found no additional concrete simplification that preserves tested behavior.
+This does not claim that every possible workload-specific optimization has been exhausted.

@@ -2,8 +2,7 @@
 # Build an architecture-specific, relocatable user-install bundle (models excluded).
 set -euo pipefail
 cd "$(dirname "$0")/.."
-[[ -x target/release/recall ]] || { echo 'Build recall first' >&2; exit 1; }
-python3 omarchy/embed_skill.py
+[[ -x target/release/recall-engine ]] || { echo 'Build recall first' >&2; exit 1; }
 out=${1:-"$PWD/dist"}
 mkdir -p "$out"
 out=$(realpath "$out")
@@ -11,9 +10,11 @@ stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
 root="$stage/recall-for-omarchy"
 mkdir -p "$root/target/release"
-cp target/release/recall "$root/target/release/"
+cp target/release/recall-engine target/release/recall "$root/target/release/"
 cp -P Vendor/llama/lib/*.so* "$root/target/release/"
-cp -r app omarchy "$root/"
+mkdir -p "$root/omarchy"
+cp -r omarchy/plugin omarchy/assets omarchy/skills "$root/omarchy/"
+cp omarchy/smoke.py "$root/omarchy/"
 mkdir -p "$root/tests"
 cp -r tests/reference "$root/tests/"
 mkdir -p "$root/scripts"

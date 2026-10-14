@@ -43,7 +43,7 @@ recall skill
 recall skill install
 ```
 
-The CLI outputs JSON with meaningful exit codes. The embedded skill installs to the shared agents skill directory, with Claude Code linking when available. Searching never opens a window. The background service must be running. Only selected folders are searched; code repositories require explicit selection. Audio matches point to intervals, not word-level transcripts.
+The CLI and background coordinator are native Rust. The search panel and settings use QML. Python is needed only for optional OCR; GTK is not required. The CLI outputs JSON with meaningful exit codes. The embedded skill installs to the shared agents skill directory, with Claude Code linking when available. Searching never opens a window. The background service must be running. Only selected folders are searched; code repositories require explicit selection. Audio matches point to intervals, not word-level transcripts.
 
 [Usage and development](omarchy/README.md) · [Website](https://ferdousbhai.com/recall)
 
@@ -54,11 +54,10 @@ export PATH="$HOME/.cargo/bin:$PATH"
 scripts/build-llama.sh
 cargo build --release --locked
 cargo test --release --locked
-python3 -m unittest discover -s omarchy/tests
-python3 omarchy/embed_skill.py
+cargo clippy --all-targets -- -D warnings
 omarchy/bundle.sh
 ```
 
 ## Credits and license
 
-Based on [Recall by pdstn12](https://github.com/pdstn12/Recall), inspired by [DigUp by Abdur Rahim](https://github.com/ARahim3/DigUp). The Rust indexing/retrieval engine and GTK settings interface come from Recall. This fork adds the native Omarchy panel, bar integration, agent CLI/skill, packaging, and ARM fixes. MIT; see LICENSE and THIRD_PARTY_NOTICES.md. [Original project documentation](UPSTREAM_README.md).
+Based on [Recall by pdstn12](https://github.com/pdstn12/Recall), inspired by [DigUp by Abdur Rahim](https://github.com/ARahim3/DigUp). The Rust indexing/retrieval engine comes from Recall. This fork adds a native Rust CLI/coordinator and QML settings, alongside the native Omarchy panel, bar integration, agent CLI/skill, packaging, and ARM fixes. MIT; see LICENSE and THIRD_PARTY_NOTICES.md. [Original project documentation](UPSTREAM_README.md).

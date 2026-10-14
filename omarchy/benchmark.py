@@ -15,7 +15,7 @@ repo = Path(__file__).resolve().parents[1]
 results, vectors = {}, {}
 for backend in ('cpu', 'vulkan'):
     with tempfile.TemporaryFile(mode='w+') as log:
-        worker = subprocess.Popen([str(repo / 'target/release/recall'), 'worker'], stdin=subprocess.PIPE,
+        worker = subprocess.Popen([str(repo / 'target/release/recall-engine'), 'worker'], stdin=subprocess.PIPE,
                                   stdout=subprocess.PIPE, stderr=log, text=True,
                                   env=dict(os.environ, RECALL_DEVICE=backend))
         try:

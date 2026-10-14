@@ -11,6 +11,8 @@ Item {
   property var shell: null
   property var manifest: null
   property string omarchyPath: ""
+  property bool showSettings: false
+  property int settingsSave: -1
   property bool opened: false
   property var hits: []
   property int serial: 0
@@ -30,13 +32,16 @@ Item {
   }
   function open(payload) {
     opened = true
+    showSettings = false
     try {
       var options = JSON.parse(payload || "{}")
+      showSettings = options.settings === true
       if (options.query !== undefined) query.text = String(options.query)
     } catch (error) {}
-    send("prewarm")
+    if (showSettings) send("config")
+    else send("prewarm")
     send("status")
-    Qt.callLater(function() { query.forceActiveFocus() })
+    Qt.callLater(function() { if (root.showSettings) settingsForm.forceActiveFocus(); else query.forceActiveFocus() })
   }
   function close() {
     opened = false
@@ -64,6 +69,8 @@ Item {
         try {
           var reply = JSON.parse(line)
           if (reply.error) { root.notice = reply.error; root.searching = false; return }
+          if (reply.config !== undefined) settingsForm.load(reply.config)
+          if (reply.id === root.settingsSave) { root.showSettings = false; root.notice = "Settings saved" }
           if (reply.line !== undefined) { root.status = reply.line; root.paused = reply.paused }
           if (reply.id === root.latestSearch && !reply.skipped) {
             root.hits = reply.hits || []
@@ -106,10 +113,11 @@ Item {
           Text { text: "Recall"; color: Color.menu.text; font.pixelSize: 23; font.bold: true }
           Item { Layout.fillWidth: true }
           Button { text: root.paused ? "Resume indexing" : "Pause indexing"; onClicked: { root.send("pause", {paused: !root.paused}); root.send("status") } }
-          Button { text: "Settings"; onClicked: { root.send("settings"); root.close() } }
+          Button { text: root.showSettings ? "Back to search" : "Settings"; onClicked: { root.showSettings = !root.showSettings; if (root.showSettings) root.send("config"); else query.forceActiveFocus() } }
         }
         TextField {
           id: query
+          visible: !root.showSettings
           Layout.fillWidth: true
           placeholderText: "Describe a file, scene, or moment…  ·  code: search by intent"
           font.pixelSize: 18
@@ -121,8 +129,17 @@ Item {
           Keys.onEnterPressed: function(event) { root.activate((event.modifiers & Qt.ControlModifier) !== 0) }
         }
         Text { text: root.status; color: Color.menu.text; opacity: 0.7; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
+        SettingsForm {
+          id: settingsForm
+          visible: root.showSettings
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+          onSaveRequested: function(settings) { root.settingsSave = root.send("configure", {config: settings}) }
+          Keys.onEscapePressed: root.close()
+        }
         ListView {
           id: list
+          visible: !root.showSettings
           Layout.fillWidth: true
           Layout.fillHeight: true
           clip: true
@@ -170,7 +187,8 @@ Item {
           }
         }
         Text { text: root.notice; color: Color.menu.text; opacity: 0.75; font.pixelSize: 12; Layout.fillWidth: true; elide: Text.ElideRight }
-        Text { text: "↑ ↓ Select    Enter Open    Ctrl+Enter Reveal    Esc Close     ·     Everything stays on this computer"; color: Color.menu.text; opacity: 0.6; font.pixelSize: 11 }
+        Button { visible: root.showSettings; text: "Save settings"; onClicked: settingsForm.save() }
+        Text { visible: !root.showSettings; text: "↑ ↓ Select    Enter Open    Ctrl+Enter Reveal    Esc Close     ·     Everything stays on this computer"; color: Color.menu.text; opacity: 0.6; font.pixelSize: 11 }
       }
     }
   }

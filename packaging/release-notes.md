@@ -1,18 +1,13 @@
-Rebranded as **Recall for Omarchy**: project and package `recall-for-omarchy`, CLI `recall`, agent skill `recall`.
+Recall for Omarchy 0.4.0 consolidates desktop coordination and the public CLI into native Rust.
 
-Local semantic search for Omarchy, with a native desktop panel, a CLI, and a bundled skill so coding agents can search your files too.
-
-- Search documents, photos, screenshots, audio/video intervals and source code by meaning or exact text.
-- EmbeddingGemma 2, OCR, hybrid retrieval and SQLite run locally.
-- Keyboard search, bar button, folder watching, pause/resume and page/line/timestamp-aware opening.
-- `recall search` returns JSON; `recall skill` prints the agent instructions and `skill install` installs them.
-- Linux x86_64 and aarch64 builds with Vulkan GPU acceleration and CPU fallback. Apple Silicon Linux uses the Asahi/Honeykrisp Vulkan driver.
-- Validated real text/image/audio embeddings on an Apple M1 Max GPU against the existing reference vectors; existing indexes stay compatible.
-- `recall doctor` reports the selected device and available backend plugins without loading the model.
-- Short interactive queries remain on CPU by default; GPU acceleration applies to background indexing. CUDA remains an optional source-build backend.
+- `recall` is the native JSON CLI; its bundled agent skill is compiled directly from Markdown.
+- Search and settings share the Omarchy QML panel. The Python/GTK application and Python socket bridge are removed.
+- Rust owns folder watching, power policy, verified model downloads, indexing controls and page/line/timestamp-aware opening.
+- `recall-engine` keeps search and indexing workers isolated so model memory can be released independently.
+- Existing models, indexes and selected folders are preserved. Vulkan GPU acceleration and CPU fallback remain available on x86_64 and aarch64, including Apple Silicon Linux.
+- CLI/desktop use no Python or GTK runtime. Optional OCR retains its isolated Python environment; skip it with `RECALL_SKIP_OCR=1` in the bash installer and add it later with `recall ocr`.
+- Vector scoring uses bulk float16 conversion and reusable scratch memory; candidate selection avoids sorting the entire result set. Shared-library aliases remain symlinks.
 
 Install: `curl -fsSL https://ferdousbhai.com/recall/install.sh | bash`
 
-Requires Omarchy. Downloads the model and OCR assets on first setup; file content remains local. Audio search identifies intervals rather than word-level transcripts. Omarchy package repository submission is pending.
-
-Based on pdstn12/Recall (MIT), inspired by ARahim3/DigUp.
+The Omarchy package submission remains subject to maintainer approval and publication. Based on pdstn12/Recall (MIT), inspired by ARahim3/DigUp.

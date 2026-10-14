@@ -1,6 +1,6 @@
 ---
 name: recall
-description: Search locally indexed documents, screenshots, photos, audio, video, and source code by meaning or exact text through the Omarchy Recall CLI. Use to find a local file, passage, scene, recording interval, or function when its filename or location is unknown.
+description: Search locally indexed documents, screenshots, photos, audio, video, and source code by meaning or exact text through the Recall for Omarchy CLI. Use to find a local file, passage, scene, recording interval, or function when its filename or location is unknown.
 ---
 
 # Local search with Recall
@@ -10,6 +10,7 @@ Use Bash with `recall`. Search and status output JSON on stdout and do not open 
 ```bash
 recall status
 recall doctor
+recall config
 recall search "notes about retrying failed requests" --limit 5
 recall search "payment declined error" --kind screenshot --limit 5
 recall search "a dog running on a beach" --kind image
@@ -38,3 +39,5 @@ Audio is matched directly without transcription. Its locations identify windows,
 Exit status is 0 for success, including empty results; 1 for service/search errors; 2 for invalid arguments. Errors appear in JSON under `error`. If the service is unavailable, run `systemctl --user start recall-for-omarchy`, then retry once; use `journalctl --user -u recall-for-omarchy -n 30 --no-pager` to diagnose a repeated failure. Do not silently describe keyword fallback as semantic success when `encoder_error` is present.
 
 `recall pause` and `recall resume` control indexing when requested. `settings` and `toggle` explicitly open graphical UI; they are unnecessary for agent searches. To add new folders, change configuration only when the user's task authorizes expanding indexing scope. Existing `recall-engine index` is a lower-level engine command; avoid using it against the live index merely to perform a search.
+
+The CLI and background coordinator are native Rust; desktop settings use QML. `config` reads effective settings without contacting the service. `recall config set KEY JSON_VALUE` replaces one setting and the daemon applies it automatically. Change indexing scope only with user authorization; folder arrays replace the entire selected list, so preserve existing folders unless removal was requested. Optional OCR can be added with `recall ocr` when installation is authorized.

@@ -25,20 +25,20 @@ use recall::text;
 
 fn usage() -> String {
     format!(
-        "recall: search your files by what's in them (the engine as a command)
+        "recall-engine: search your files by what's in them (the engine as a command)
 
-  recall estimate <folder>... [--json]    what would be indexed, and how long the first pass takes
-  recall index <folder>... [--limit N]    sync the index with these folders, embed what's new, then the rest
+  recall-engine estimate <folder>... [--json]    what would be indexed, and how long the first pass takes
+  recall-engine index <folder>... [--limit N]    sync the index with these folders, embed what's new, then the rest
                                           of long PDFs and documents
-  recall search <words>... [--kind K,K] [-n 10] [--json]
+  recall-engine search <words>... [--kind K,K] [-n 10] [--json]
                                           \"code: <words>\" searches the code index
-  recall devices                          JSON diagnostics: selected GPU/CPU and backend plugins
-  recall status                           what's in the index
-  recall eval <queries.json> [-n 10]      recall of known answers (see evals/; \"code: …\" queries search code)
-  recall index-service <folder>... [--code-root DIR]... [--code-exclude DIR]... [--backfill] [--prune]
+  recall-engine devices                          JSON diagnostics: selected GPU/CPU and backend plugins
+  recall-engine status                           what's in the index
+  recall-engine eval <queries.json> [-n 10]      recall-engine of known answers (see evals/; \"code: …\" queries search code)
+  recall-engine index-service <folder>... [--code-root DIR]... [--code-exclude DIR]... [--backfill] [--prune]
                                           the app's indexing helper (JSON lines)
-  recall worker [--text-only]             the model as a process (JSON lines)
-  recall serve [--idle 600]               search as a process, for the app (JSON lines)
+  recall-engine worker [--text-only]             the model as a process (JSON lines)
+  recall-engine serve [--idle 600]               search as a process, for the app (JSON lines)
 
 Options:
   --index DIR          index folder (default: {})

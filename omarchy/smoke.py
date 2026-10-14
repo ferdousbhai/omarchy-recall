@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 repo = Path(__file__).resolve().parents[1]
-engine = repo / 'target/release/recall'
+engine = repo / 'target/release/recall-engine'
 with tempfile.TemporaryDirectory(prefix='recall-smoke-') as temporary:
     base = Path(temporary)
     files = base / 'files'
