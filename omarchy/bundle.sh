@@ -3,6 +3,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 [[ -x target/release/recall ]] || { echo 'Build recall first' >&2; exit 1; }
+python3 omarchy/embed_skill.py
 out=${1:-"$PWD/dist"}
 mkdir -p "$out"
 out=$(realpath "$out")

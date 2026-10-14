@@ -27,11 +27,20 @@ def parser():
     commands.add_parser('resume', help='Resume background indexing')
     commands.add_parser('settings', help='Open graphical settings (explicit GUI action)')
     commands.add_parser('toggle', help='Toggle the graphical search panel')
+    skill = commands.add_parser('skill', help='Print the bundled agent skill or install it for coding agents')
+    skill.add_subparsers(dest='skill_command').add_parser('install', help='Install in ~/.agents/skills and link Claude Code when available')
     return root
 
 
 def main(argv=None):
     arguments = parser().parse_args(argv)
+    if arguments.command == 'skill':
+        from agent_skill import SKILL_TEXT, install
+        if arguments.skill_command == 'install':
+            print(json.dumps(install()))
+        else:
+            print(SKILL_TEXT, end='')
+        return 0
     if arguments.command == 'toggle':
         import os
         from pathlib import Path

@@ -45,13 +45,8 @@ for name, body in {
     path.chmod(0o755)
 
 
-# Bundle the same discoverable skill for Codex and other skill-aware agents.
-skill_source = repo / 'omarchy/skills/omarchy-recall'
-for skill_root in (Path(os.environ.get('CODEX_HOME', home / '.codex')) / 'skills', home / '.agents/skills'):
-    destination = skill_root / 'omarchy-recall'
-    destination.mkdir(parents=True, exist_ok=True)
-    backup(destination / 'SKILL.md')
-    shutil.copy2(skill_source / 'SKILL.md', destination / 'SKILL.md')
+# Install the embedded skill through the same entry point agents use.
+subprocess.run(['/usr/bin/python3', str(repo / 'omarchy/cli.py'), 'skill', 'install'], check=True)
 
 settings_path = config / 'recall/settings.json'
 settings_path.parent.mkdir(parents=True, exist_ok=True)
