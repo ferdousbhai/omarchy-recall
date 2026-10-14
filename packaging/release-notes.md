@@ -1,14 +1,14 @@
-Recall for Omarchy 0.4.2 uses Omarchy’s bundled Tesseract for OCR.
+Recall for Omarchy v0.4.3 improves installation safety and introduces signed releases.
 
-- No Python runtime, uv environment, RapidOCR, ONNX Runtime, or separate OCR model downloads are needed.
-- Screenshot and scanned-PDF text extraction use installed Tesseract language packs, English first.
-- OCR has a 30-second per-image deadline, bounded output, and child cleanup. Failed images do not disable subsequent OCR.
-- `recall ocr` reports system OCR availability and recognition languages as JSON without installing anything.
-- The installer installs Tesseract and English data through Omarchy. Existing indexes, models and folders are preserved; already-indexed files are not automatically re-OCRed.
-- The native `recall` CLI, bundled agent skill, QML panel, CPU fallback and Vulkan acceleration remain available on x86_64 and aarch64. OCR itself runs on CPU.
+- Release bundles for x86_64 and aarch64, plus install.sh, are signed with keyless Sigstore through this repository’s GitHub release workflow. Verification instructions are in README.md.
+- The installer lists packages and asks before installing them. Use --yes or RECALL_YES=1 for unattended installation.
+- Desktop setup backs up keybindings and restores them when Hyprland reports configuration errors. Set RECALL_NO_KEYBINDING=1 to skip adding the shortcut.
+- Desktop entries use the fork’s app ID; setup removes entries created under the previous ID.
+- Invalid configuration is rejected before saving. Reader panics are recorded as failed batches so indexing can continue.
+- Rust 1.89 is the minimum supported version, with CI on both 1.89 and stable.
 
-Old optional OCR environments are no longer used; they are left on disk for users to remove when ready. Recognition quality can differ from PaddleOCR, particularly on photos and complex layouts; the synthetic text fixture is a regression check, not an accuracy benchmark.
+Existing indexes, models, and selected folders are preserved. OCR continues to use system Tesseract; CPU fallback and Vulkan acceleration remain available on both architectures.
 
 Install: `curl -fsSL https://ferdousbhai.com/recall/install.sh | bash`
 
-The Omarchy package submission remains subject to maintainer approval and publication. Based on pdstn12/Recall (MIT), inspired by ARahim3/DigUp.
+Based on pdstn12/Recall (MIT), inspired by ARahim3/DigUp.
