@@ -1,3 +1,5 @@
+Rebranded as **Recall for Omarchy**: project and package `recall-for-omarchy`, CLI `recall`, agent skill `recall`.
+
 Local semantic search for Omarchy, with a native desktop panel, a CLI, and a bundled skill so coding agents can search your files too.
 
 - Search documents, photos, screenshots, audio/video intervals and source code by meaning or exact text.
