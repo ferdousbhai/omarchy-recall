@@ -153,6 +153,10 @@ impl State {
                 s["roots"] = config["roots"].clone();
                 s["code_roots"] = config["code_roots"].clone();
                 s["paused"] = self.paused.load(Ordering::Acquire).into();
+                if folders(&config, "roots").is_empty() && folders(&config, "code_roots").is_empty()
+                {
+                    s["line"] = json!("Choose folders in Settings to start indexing");
+                }
                 if s["download"] == "downloading" {
                     let folder = Path::new(config["models_directory"].as_str().unwrap());
                     let received: u64 = model_files::ALL
@@ -233,9 +237,20 @@ impl State {
                         bail!("Invalid kinds or code/kind combination");
                     }
                 }
+                let config = self.config.lock().unwrap().clone();
+                let code = query.starts_with("code:");
+                if folders(&config, if code { "code_roots" } else { "roots" }).is_empty() {
+                    return Ok(json!({"hits":[],"strong":0,"meaning":false,"code":code}));
+                }
                 let mut reply = self.engine_request(value)?;
                 let code = reply["code"].as_bool().unwrap_or(false);
+                let config = self.config.lock().unwrap().clone();
                 if let Some(hits) = reply["hits"].as_array_mut() {
+                    hits.retain(|hit| {
+                        hit["path"]
+                            .as_str()
+                            .is_some_and(|path| in_scope(Path::new(path), &config, code))
+                    });
                     for hit in hits {
                         let path = Path::new(hit["path"].as_str().unwrap_or(""));
                         let name = path
@@ -272,9 +287,34 @@ impl State {
                 if value["segment"].as_u64().unwrap_or(0) == 0 {
                     bail!("Segment must be positive");
                 }
+                let code = value["code"].as_bool().unwrap_or(false);
+                let config = self.config.lock().unwrap().clone();
+                if folders(&config, if code { "code_roots" } else { "roots" }).is_empty() {
+                    return Ok(json!({"text":null}));
+                }
+                let mut reply = self.engine_request(value)?;
+                let config = self.config.lock().unwrap().clone();
+                if !reply["path"]
+                    .as_str()
+                    .is_some_and(|path| in_scope(Path::new(path), &config, code))
+                {
+                    reply["text"] = Value::Null;
+                }
+                if let Some(object) = reply.as_object_mut() {
+                    object.remove("path");
+                }
+                Ok(reply)
+            }
+            "prewarm" => {
+                let config = self.config.lock().unwrap();
+                if folders(&config, "roots").is_empty() && folders(&config, "code_roots").is_empty()
+                {
+                    return Ok(json!({"ok":true}));
+                }
+                drop(config);
                 self.engine_request(value)
             }
-            "prewarm" | "release" => self.engine_request(value),
+            "release" => self.engine_request(value),
             "open" | "reveal" => {
                 open_hit(&value["hit"], &self.config.lock().unwrap(), op == "reveal")?;
                 Ok(json!({"ok":true}))
@@ -416,6 +456,11 @@ fn download(state: Arc<State>) {
         let missing = model_files::missing(folder);
         if missing.is_empty() {
             state.status.lock().unwrap()["download"] = json!("ready");
+            thread::sleep(Duration::from_secs(5));
+            continue;
+        }
+        if folders(&config, "roots").is_empty() && folders(&config, "code_roots").is_empty() {
+            state.status.lock().unwrap()["download"] = json!("needed");
             thread::sleep(Duration::from_secs(5));
             continue;
         }

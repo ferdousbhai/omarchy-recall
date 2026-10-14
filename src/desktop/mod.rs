@@ -434,15 +434,53 @@ pub(super) fn uri(path: &Path) -> String {
     }
     result
 }
+pub(super) fn in_scope(path: &Path, config: &Value, code: bool) -> bool {
+    let Ok(path) = path.canonicalize() else {
+        return false;
+    };
+    if !path.is_file() {
+        return false;
+    }
+    if !code
+        && path
+            .extension()
+            .and_then(|e| e.to_str())
+            .is_some_and(|extension| {
+                folders(config, "excluded_types")
+                    .iter()
+                    .any(|excluded| excluded.eq_ignore_ascii_case(extension))
+            })
+    {
+        return false;
+    }
+    let roots: Vec<_> = folders(config, if code { "code_roots" } else { "roots" })
+        .iter()
+        .filter_map(|root| fs::canonicalize(root).ok())
+        .map(|root| root.to_string_lossy().into_owned())
+        .collect();
+    let excluded: Vec<_> = folders(
+        config,
+        if code {
+            "code_excluded"
+        } else {
+            "excluded_folders"
+        },
+    )
+    .iter()
+    .map(|folder| {
+        fs::canonicalize(folder)
+            .unwrap_or_else(|_| paths::standardize(Path::new(folder)))
+            .to_string_lossy()
+            .into_owned()
+    })
+    .collect();
+    !roots.is_empty() && recall::folders::is_searched(&path.to_string_lossy(), &roots, &excluded)
+}
+
 pub(super) fn open_hit(hit: &Value, config: &Value, reveal: bool) -> Result<()> {
     let path = Path::new(hit["path"].as_str().context("Missing hit path")?).canonicalize()?;
     let code = hit["code"].as_bool().unwrap_or(false);
-    if !path.is_file()
-        || !folders(config, if code { "code_roots" } else { "roots" })
-            .iter()
-            .filter_map(|p| fs::canonicalize(p).ok())
-            .any(|r| path.starts_with(r))
-    {
+    if !in_scope(&path, config, code) {
         bail!("File is outside indexed folders or no longer exists");
     }
     let p = path.to_string_lossy().to_string();
@@ -597,5 +635,29 @@ mod tests {
         let file = dir.path().join("x");
         fs::write(&file, "data").unwrap();
         assert!(open_hit(&json!({"path":file}), &defaults(), false).is_err());
+    }
+}
+
+#[cfg(test)]
+mod scope_tests {
+    use super::*;
+    #[test]
+    fn extensions_and_symlink_escapes_respect_the_current_selection() {
+        let directory = tempfile::tempdir().unwrap();
+        let inside = directory.path().join("inside");
+        fs::create_dir(&inside).unwrap();
+        let text = inside.join("notes.txt");
+        fs::write(&text, "data").unwrap();
+        let outside = directory.path().join("outside.txt");
+        fs::write(&outside, "data").unwrap();
+        let link = inside.join("link.txt");
+        std::os::unix::fs::symlink(&outside, &link).unwrap();
+        let mut config = defaults();
+        config["roots"] = json!([inside]);
+        config["code_roots"] = json!([inside]);
+        config["excluded_types"] = json!(["txt"]);
+        assert!(!in_scope(&text, &config, false));
+        assert!(in_scope(&text, &config, true));
+        assert!(!in_scope(&link, &config, true));
     }
 }

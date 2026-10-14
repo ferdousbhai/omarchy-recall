@@ -93,3 +93,8 @@ folders, downloaded models and indexes are preserved.
 The final scan of runtime dependencies, stale Python/GTK references, process lifecycle, packaging
 and changed paths found no additional concrete simplification that preserves tested behavior.
 This does not claim that every possible workload-specific optimization has been exhausted.
+
+The pending 0.4.0 build was cancelled during the final scan. Version 0.4.1 also checks current
+folder scope and exclusions for retained search hits, indexed passages and opening actions;
+empty selections return no hits. Regression tests cover this inherited edge case. Downloads
+are deferred when no folders are selected. Existing cached data remains intact.

@@ -440,6 +440,13 @@ impl Searcher {
         Ok((segment, code::first_line(&words, &text, first.unwrap_or(1.0) as usize).map(|line| line as f64)))
     }
 
+    /// Source path for checking a passage against the desktop's current folder selection.
+    pub fn path_of_segment(&self, id: i64) -> Result<Option<String>> {
+        Ok(self.store.db.query_row(
+            "SELECT f.path FROM segments s JOIN files f ON f.id = s.file WHERE s.id = ?",
+            [id], |row| row.get(0)).optional()?)
+    }
+
     /// The text of a page, a document's passage or a screenshot's OCR, as it's written: the preview shows the part of a
     /// document that matched.
     pub fn text_of_segment(&self, id: i64) -> Result<Option<String>> {

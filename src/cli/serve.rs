@@ -202,11 +202,11 @@ impl Service {
                 let code = request["code"].as_bool().unwrap_or(false);
                 let segment = request["segment"].as_i64().ok_or_else(|| anyhow!("which segment?"))?;
                 let searcher = if code { self.code_searcher_if_any()? } else { self.main_searcher()? };
-                let text = match searcher {
-                    Some(searcher) => searcher.text_of_segment(segment)?,
-                    None => None,
+                let (text, path) = match searcher {
+                    Some(searcher) => (searcher.text_of_segment(segment)?, searcher.path_of_segment(segment)?),
+                    None => (None, None),
                 };
-                Ok(json!({"text": text}))
+                Ok(json!({"text": text, "path": path}))
             }
             Some("roots") => Ok(json!({"roots": self.root_summaries(request["code"].as_bool().unwrap_or(false))?})),
             Some("rank") => self.rank(request),

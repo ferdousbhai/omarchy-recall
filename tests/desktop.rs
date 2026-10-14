@@ -110,6 +110,18 @@ fn cli_validates_before_contacting_service() {
 #[test]
 fn native_socket_pause_config_and_exclusive_daemon() {
     let mut f = Fixture::new();
+    let folder = f.dir.path().join("files");
+    fs::create_dir(&folder).unwrap();
+    let mut config: Value = serde_json::from_slice(
+        &fs::read(f.dir.path().join("config/recall/settings.json")).unwrap(),
+    )
+    .unwrap();
+    config["roots"] = json!([folder]);
+    fs::write(
+        f.dir.path().join("config/recall/settings.json"),
+        config.to_string(),
+    )
+    .unwrap();
     f.start();
     let socket = f.dir.path().join("recall-for-omarchy.sock");
     assert_eq!(
@@ -287,6 +299,12 @@ fn result_opening_preserves_media_offsets_and_code_lines_without_shell_interpola
 #[test]
 fn replacing_the_cli_binary_does_not_break_a_running_coordinator() {
     let mut fixture = Fixture::new();
+    let selected = fixture.dir.path().join("selected");
+    fs::create_dir(&selected).unwrap();
+    let settings = fixture.dir.path().join("config/recall/settings.json");
+    let mut config: Value = serde_json::from_slice(&fs::read(&settings).unwrap()).unwrap();
+    config["roots"] = json!([selected]);
+    fs::write(settings, config.to_string()).unwrap();
     let directory = fixture.dir.path().join("bundle/target/release");
     fs::create_dir_all(&directory).unwrap();
     let binary = directory.join("recall");
@@ -303,14 +321,23 @@ fn replacing_the_cli_binary_does_not_break_a_running_coordinator() {
             .get_envs()
             .filter_map(|(k, v)| v.map(|v| (k, v))),
     );
-    fixture.daemon = Some(
-        daemon
-            .arg("daemon")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .unwrap(),
-    );
+    daemon
+        .arg("daemon")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null());
+    let deadline = Instant::now() + Duration::from_secs(2);
+    fixture.daemon = Some(loop {
+        // Parallel fork/exec tests can briefly inherit a writer to the freshly copied ELF.
+        match daemon.spawn() {
+            Ok(child) => break child,
+            Err(error)
+                if error.raw_os_error() == Some(libc::ETXTBSY) && Instant::now() < deadline =>
+            {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            Err(error) => panic!("Could not launch copied CLI: {error}"),
+        }
+    });
     let deadline = Instant::now() + Duration::from_secs(5);
     while !fixture.dir.path().join("recall-for-omarchy.sock").exists() {
         assert!(Instant::now() < deadline);
@@ -322,4 +349,79 @@ fn replacing_the_cli_binary_does_not_break_a_running_coordinator() {
     fs::remove_file(old).unwrap();
     let response = fixture.rpc(json!({"op":"search","query":"nothing","meaning":false}));
     assert!(response.get("error").is_none(), "{response}");
+}
+
+#[test]
+fn empty_selections_and_exclusions_hide_retained_hits_and_passages() {
+    use recall::{
+        crawler::Candidate,
+        model::{FileKind, Modality, SegmentKind},
+        store::{Store, MAIN_FILE},
+    };
+    let mut fixture = Fixture::new();
+    let folder = fixture.dir.path().join("documents");
+    fs::create_dir(&folder).unwrap();
+    let file = folder.join("retained.txt");
+    fs::write(&file, "retained secret passage").unwrap();
+    let store = Store::open(&fixture.dir.path().join("index"), MAIN_FILE).unwrap();
+    let id = store
+        .insert(&Candidate {
+            path: file.to_string_lossy().into_owned(),
+            kind: FileKind::Doc,
+            size: 23,
+            mtime: 1.0,
+            inode: 1,
+            device: 1,
+        })
+        .unwrap();
+    store
+        .add_segment(
+            id,
+            SegmentKind::Chunk,
+            Modality::Text,
+            Some(1.0),
+            None,
+            None,
+            Some("retained secret passage"),
+            None,
+        )
+        .unwrap();
+    let segment: i64 = store
+        .db
+        .query_row(
+            "SELECT id FROM segments WHERE file=? AND kind='chunk'",
+            [id],
+            |r| r.get(0),
+        )
+        .unwrap();
+    fixture.start();
+    assert!(
+        fixture.rpc(json!({"op":"search","query":"retained","meaning":false}))["hits"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(fixture.rpc(json!({"op":"text","segment":segment}))["text"].is_null());
+    assert_eq!(
+        fixture
+            .rpc(json!({"op":"configure","config":{"roots":[fixture.dir.path()],"excluded_folders":[folder]}}))
+            ["ok"],
+        true
+    );
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while fixture.rpc(json!({"op":"config"}))["config"]["roots"]
+        .as_array()
+        .unwrap()
+        .is_empty()
+    {
+        assert!(Instant::now() < deadline);
+        std::thread::sleep(Duration::from_millis(20));
+    }
+    assert!(
+        fixture.rpc(json!({"op":"search","query":"retained","meaning":false}))["hits"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    assert!(fixture.rpc(json!({"op":"text","segment":segment}))["text"].is_null());
 }

@@ -1,4 +1,4 @@
-Recall for Omarchy 0.4.0 consolidates desktop coordination and the public CLI into native Rust.
+Recall for Omarchy 0.4.1 consolidates desktop coordination and the public CLI into native Rust.
 
 - `recall` is the native JSON CLI; its bundled agent skill is compiled directly from Markdown.
 - Search and settings share the Omarchy QML panel. The Python/GTK application and Python socket bridge are removed.
