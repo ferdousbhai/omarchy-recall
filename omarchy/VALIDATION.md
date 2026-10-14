@@ -13,7 +13,7 @@ Tested on Arch Linux ARM (aarch64), CPU inference, 2026-10-14.
 
 Initial Documents/Pictures pass indexed 137 files and skipped one. The new checkout's code is also enabled and indexes in the background. Large additional folders will need their own first pass.
 
-Not validated here: CUDA/Vulkan acceleration, other architectures, word-level audio alignment, and an exhaustive set of external PDF/editor/player applications. Audio matches identify indexed intervals; they do not provide transcripts.
+Not validated here: CUDA acceleration, non-Apple physical GPU hardware, word-level audio alignment, and an exhaustive set of external PDF/editor/player applications. Audio matches identify indexed intervals; they do not provide transcripts.
 
 Agent CLI update:
 
@@ -30,3 +30,5 @@ Vulkan GPU update (Apple M1 Max, Mesa Honeykrisp 26.2.4):
 - Warmed, three-run-median fixture timings: photo embedding 2.0663 s CPU versus 0.4573 s GPU (4.52×); audio 0.4044 s versus 0.2544 s (1.59×). Short text query CPU 0.0293 s versus GPU 0.0948 s, supporting the CPU query default. These are fixture timings, not whole-library throughput guarantees.
 - CPU/GPU embedding agreement exceeded cosine 0.999 for all benchmark modalities. Full measurements are in `m1-max-benchmark.json`; reproduce using `python3 omarchy/benchmark.py`.
 - Explicit unavailable CUDA/invalid backend requests fail clearly. Automatic selection succeeds on CPU when no Vulkan driver is available.
+
+- Published v0.2.0: CPU fallback and real-model software-Vulkan smoke tests passed on both x86_64 and aarch64 hosted runners: https://github.com/ferdousbhai/omarchy-recall/actions/runs/38543459225. The published ARM binary also passed on the physical M1 Max GPU. Native v0.2.0 Arch packaging/checks passed with `makepkg --cleanbuild --nodeps`.
