@@ -12,7 +12,7 @@ curl -fsSL https://ferdousbhai.com/recall/install.sh | bash
 
 Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, checksum-verified release, installs runtime dependencies through Omarchy, and configures the desktop integration and agent skill. Model files (865 MB) and OCR models download once. Initial indexing takes time.
 
-An Omarchy package submission is in progress. Once published in your configured channel:
+[Omarchy package PR #1066](https://github.com/omacom/omarchy-pkgs/pull/1066) awaits upstream build approval and publication. Once published in your configured channel:
 
 ```bash
 omarchy pkg add omarchy-recall
