@@ -16,7 +16,10 @@ Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, che
 
 ```bash
 omarchy pkg add recall-for-omarchy
-recall setup
+recall setup --skip-ocr
+# Optional OCR:
+omarchy pkg add uv
+recall ocr
 ```
 
 For code/text-only use, skip the optional OCR environment:
@@ -60,4 +63,4 @@ omarchy/bundle.sh
 
 ## Credits and license
 
-Based on [Recall by pdstn12](https://github.com/pdstn12/Recall), inspired by [DigUp by Abdur Rahim](https://github.com/ARahim3/DigUp). The Rust indexing/retrieval engine comes from Recall. This fork adds a native Rust CLI/coordinator and QML settings, alongside the native Omarchy panel, bar integration, agent CLI/skill, packaging, and ARM fixes. MIT; see LICENSE and THIRD_PARTY_NOTICES.md. [Original project documentation](UPSTREAM_README.md).
+Based on [Recall by pdstn12](https://github.com/pdstn12/Recall), inspired by [DigUp by Abdur Rahim](https://github.com/ARahim3/DigUp). The Rust indexing/retrieval engine comes from Recall. This fork adds a native Rust CLI/coordinator and QML settings, alongside the native Omarchy panel, bar integration, bundled agent skill, packaging, and ARM fixes. MIT; see LICENSE and THIRD_PARTY_NOTICES.md. [Original project documentation](UPSTREAM_README.md).

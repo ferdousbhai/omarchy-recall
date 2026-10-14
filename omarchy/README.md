@@ -11,6 +11,7 @@ scripts/build-llama.sh
 cargo build --release --locked
 ./target/release/recall setup --skip-ocr
 # Optional screenshot/scanned-page text recognition:
+omarchy pkg add uv
 recall ocr
 ```
 
