@@ -485,7 +485,7 @@ pub fn strong_count(hits: &[SearchHit], ratio: f64) -> usize {
 /// The scale (the averages and the deviation) comes from the vectors in `sets_scale` (all by default): `search` leaves
 /// out the later pages of long files, which are scored on it but don't move it.
 pub fn meaning(scores: &[f32], modality: &[Modality], sets_scale: Option<&[bool]>) -> Vec<f64> {
-    let counts = |row: usize| sets_scale.map_or(true, |sets| sets[row]);
+    let counts = |row: usize| sets_scale.is_none_or(|sets| sets[row]);
     let means = modality_means(scores, modality, sets_scale);
     let centered: Vec<f64> = scores
         .iter()
@@ -515,7 +515,7 @@ pub fn modality_means(scores: &[f32], modality: &[Modality], sets_scale: Option<
     let mut sum: BTreeMap<Modality, f64> = BTreeMap::new();
     let mut count: BTreeMap<Modality, usize> = BTreeMap::new();
     for row in 0..scores.len() {
-        if sets_scale.map_or(true, |sets| sets[row]) {
+        if sets_scale.is_none_or(|sets| sets[row]) {
             *sum.entry(modality[row]).or_insert(0.0) += f64::from(scores[row]);
             *count.entry(modality[row]).or_insert(0) += 1;
         }

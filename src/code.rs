@@ -479,7 +479,7 @@ fn has(word: &str, line: &str) -> bool {
     let same_length = lower.len() == line.len();
     for (at, _) in lower.match_indices(word) {
         let before = lower[..at].chars().next_back();
-        let clear = before.map_or(true, |ch| !ch.is_alphanumeric());
+        let clear = before.is_none_or(|ch| !ch.is_alphanumeric());
         let capital = same_length && line[at..].chars().next().is_some_and(char::is_uppercase);
         if clear || capital {
             return true;

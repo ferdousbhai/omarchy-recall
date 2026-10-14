@@ -5,7 +5,7 @@ edition = "2021"
 description = "Search your files by what's in them: the engine (indexing, the embedding model, search)."
 license = "MIT"
 repository = "https://github.com/ferdousbhai/recall-for-omarchy"
-rust-version = "1.80"
+rust-version = "1.89"
 
 [lib]
 name = "recall"

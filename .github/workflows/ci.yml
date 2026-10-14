@@ -1,0 +1,33 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        toolchain: [stable, "1.89"] # 1.89 is the MSRV in Cargo.toml (uuid in Cargo.lock needs it)
+    runs-on: ubuntu-24.04
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy
+      - run: sudo apt-get update && sudo apt-get install -y tesseract-ocr tesseract-ocr-eng clang cmake ninja-build ffmpeg poppler-utils libvips-tools
+      - uses: actions/cache@v4
+        with:
+          path: Vendor/llama
+          key: llama-${{ runner.os }}-${{ hashFiles('scripts/build-llama.sh', 'scripts/llama.cpp-no-logits.patch') }}
+      - run: test -f Vendor/llama/lib/libllama.so || scripts/build-llama.sh
+      - run: cargo build --locked --all-targets
+      - run: cargo test --locked
+      - if: matrix.toolchain == '1.89' # newer stable clippy adds lints; pin to keep CI reproducible
+        run: cargo clippy --locked --all-targets -- -D warnings

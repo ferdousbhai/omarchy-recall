@@ -125,34 +125,50 @@ pub(super) fn desktop() -> Result<()> {
         .replace('"', "\\\"")
         .replace('%', "%%");
     atomic_write(&service,format!("[Unit]\nDescription=Recall local semantic search for Omarchy\nPartOf=graphical-session.target\nAfter=graphical-session.target\n\n[Service]\nType=simple\nExecStart=\"{executable}\" daemon\nRestart=on-failure\nRestartSec=5\nNice=10\nUMask=0077\nTimeoutStopSec=15\n\n[Install]\nWantedBy=graphical-session.target\n").as_bytes())?;
+    // Opt out with RECALL_NO_KEYBINDING=1. The block is marked so it can be removed cleanly.
     let bindings = config.join("hypr/bindings.lua");
     let marker = "-- recall-for-omarchy: start";
-    if bindings.exists() {
-        let mut text = fs::read_to_string(&bindings)?;
-        if !text.contains(marker) {
+    if bindings.exists() && std::env::var_os("RECALL_NO_KEYBINDING").is_none() {
+        let original = fs::read_to_string(&bindings)?;
+        if !original.contains(marker) {
             backup(&bindings)?;
-            text.push_str(&format!("\n{marker}\no.bind(\"SUPER + CTRL + SHIFT + F\", \"Recall semantic search\", \"recall toggle\")\n-- recall-for-omarchy: end\n"));
+            let text = format!("{original}\n{marker}\no.bind(\"SUPER + CTRL + SHIFT + F\", \"Recall semantic search\", \"recall toggle\")\n-- recall-for-omarchy: end\n");
             atomic_write(&bindings, text.as_bytes())?;
             checked(Command::new("hyprctl").arg("reload"))?;
-            checked(Command::new("hyprctl").arg("configerrors"))?;
+            // `hyprctl configerrors` exits 0 even when the config has errors; inspect its output instead.
+            let report = Command::new("hyprctl").arg("configerrors").output()?;
+            let errors = String::from_utf8_lossy(&report.stdout).trim().to_string();
+            if !report.status.success() || !(errors.is_empty() || errors.eq_ignore_ascii_case("no errors")) {
+                atomic_write(&bindings, original.as_bytes())?;
+                let _ = Command::new("hyprctl").arg("reload").status();
+                bail!("Hyprland reported config errors after adding the Recall keybinding; restored bindings.lua: {errors}");
+            }
         }
     }
-    let desktop = data.join("applications/io.github.pdstn12.Recall.desktop");
+    // Migrate from the upstream app ID used by releases up to v0.4.2.
+    for old in [
+        data.join("applications/io.github.pdstn12.Recall.desktop"),
+        data.join("icons/hicolor/scalable/apps/io.github.pdstn12.Recall.svg"),
+    ] {
+        if old.exists() {
+            fs::remove_file(&old)?;
+        }
+    }
+    let desktop = data.join("applications/io.github.ferdousbhai.Recall.desktop");
     let desktop_exec = bin
         .join("recall")
         .to_string_lossy()
         .replace('\\', "\\\\")
         .replace('"', "\\\"")
         .replace('%', "%%");
-    atomic_write(&desktop,format!("[Desktop Entry]\nType=Application\nName=Recall for Omarchy\nComment=Search local files by meaning\nExec=\"{desktop_exec}\" toggle\nIcon=io.github.pdstn12.Recall\nCategories=Utility;\nTerminal=false\n").as_bytes())?;
-    let icon = data.join("icons/hicolor/scalable/apps/io.github.pdstn12.Recall.svg");
+    atomic_write(&desktop,format!("[Desktop Entry]\nType=Application\nName=Recall for Omarchy\nComment=Search local files by meaning\nExec=\"{desktop_exec}\" toggle\nIcon=io.github.ferdousbhai.Recall\nCategories=Utility;\nTerminal=false\n").as_bytes())?;
+    let icon = data.join("icons/hicolor/scalable/apps/io.github.ferdousbhai.Recall.svg");
     fs::create_dir_all(icon.parent().unwrap())?;
     fs::copy(root.join("omarchy/assets/recall.svg"), icon)?;
     checked(Command::new("systemctl").args(["--user", "daemon-reload"]))?;
     checked(Command::new("systemctl").args([
         "--user",
         "enable",
-        "--now",
         "recall-for-omarchy.service",
     ]))?;
     checked(Command::new("systemctl").args(["--user", "restart", "recall-for-omarchy.service"]))?;

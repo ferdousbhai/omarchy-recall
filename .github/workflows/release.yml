@@ -37,12 +37,19 @@ jobs:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
+      id-token: write # keyless Sigstore signing
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           path: dist
           merge-multiple: true
+      - uses: sigstore/cosign-installer@v3
+      - name: Sign release assets (keyless, GitHub OIDC)
+        run: |
+          for file in dist/*.tar.gz install.sh; do
+            cosign sign-blob --yes --bundle "dist/$(basename "$file").sigstore.json" "$file"
+          done
       - env:
           GH_TOKEN: ${{ github.token }}
         run: gh release create "$GITHUB_REF_NAME" dist/* install.sh --verify-tag --title "Recall for Omarchy $GITHUB_REF_NAME" --notes-file packaging/release-notes.md
