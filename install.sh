@@ -22,7 +22,11 @@ DIGEST=$(awk 'NR==1 {print $1}' "$TEMP/checksum")
 [[ $DIGEST =~ ^[0-9a-f]{64}$ ]] || { echo 'Invalid checksum file.' >&2; exit 1; }
 (cd "$TEMP"; printf '%s  %s\n' "$DIGEST" "$ASSET" | sha256sum --check --status)
 # Package installation may need a terminal for authentication when invoked through a pipe.
-omarchy pkg add python python-gobject gtk4 libadwaita ffmpeg poppler libvips uv xdg-utils xdg-terminal-exec < /dev/tty
+omarchy pkg add python python-gobject gtk4 libadwaita ffmpeg poppler libvips uv xdg-utils xdg-terminal-exec vulkan-icd-loader < /dev/tty
+# Apple GPUs on Linux use the Asahi Vulkan userspace driver.
+if [[ -r /proc/device-tree/model ]] && grep -aq Apple /proc/device-tree/model; then
+  omarchy pkg add vulkan-asahi < /dev/tty
+fi
 DEST="${XDG_DATA_HOME:-$HOME/.local/share}/omarchy-recall/releases/$VERSION"
 mkdir -p "$DEST"
 tar -xzf "$TEMP/$ASSET" -C "$DEST"

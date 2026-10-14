@@ -10,7 +10,7 @@ Describe a photo, find a document passage, jump to a recording interval, or sear
 curl -fsSL https://ferdousbhai.com/recall/install.sh | bash
 ```
 
-Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, checksum-verified release, installs runtime dependencies through Omarchy, and configures the desktop integration and agent skill. Model files (865 MB) and OCR models download once. Initial indexing takes time.
+Supports Omarchy on x86_64 and aarch64. The installer downloads a versioned, checksum-verified release, installs runtime dependencies through Omarchy, and configures the desktop integration and agent skill. Vulkan GPU acceleration is included on both architectures, with CPU fallback. Apple Silicon on Linux uses Asahi’s Honeykrisp driver; the installer adds `vulkan-asahi` on Apple machines. Model files (865 MB) and OCR models download once. Initial indexing takes time.
 
 [Omarchy package PR #1066](https://github.com/omacom/omarchy-pkgs/pull/1066) awaits upstream build approval and publication. Once published in your configured channel:
 
@@ -28,6 +28,7 @@ omarchy-recall search "payment error" --kind screenshot --limit 5
 omarchy-recall search "retry with exponential backoff" --code
 omarchy-recall text 123 --code
 omarchy-recall status
+omarchy-recall doctor
 omarchy-recall skill
 omarchy-recall skill install
 ```

@@ -4,7 +4,10 @@ Local semantic search for Omarchy, with a native desktop panel, a CLI, and a bun
 - EmbeddingGemma 2, OCR, hybrid retrieval and SQLite run locally.
 - Keyboard search, bar button, folder watching, pause/resume and page/line/timestamp-aware opening.
 - `omarchy-recall search` returns JSON; `omarchy-recall skill` prints the agent instructions and `skill install` installs them.
-- Linux x86_64 and aarch64 CPU builds. GPU acceleration is not enabled in these initial binaries.
+- Linux x86_64 and aarch64 builds with Vulkan GPU acceleration and CPU fallback. Apple Silicon Linux uses the Asahi/Honeykrisp Vulkan driver.
+- Validated real text/image/audio embeddings on an Apple M1 Max GPU against the existing reference vectors; existing indexes stay compatible.
+- `omarchy-recall doctor` reports the selected device and available backend plugins without loading the model.
+- Short interactive queries remain on CPU by default; GPU acceleration applies to background indexing. CUDA remains an optional source-build backend.
 
 Install: `curl -fsSL https://ferdousbhai.com/recall/install.sh | bash`
 

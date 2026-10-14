@@ -4,7 +4,7 @@ A native Quickshell panel and bar button, an agent CLI, and a bundled usage skil
 
 ## Install from source
 
-Needs Python GObject/GTK4/libadwaita, FFmpeg, Poppler, libvips, Rust and a C/C++ compiler. `uv` supplies CMake/Ninja and the isolated OCR environment if needed. On ARM, the bundled llama.cpp build includes runtime-selected ARM CPU variants. GPU acceleration requires the corresponding supported build toolchain; Apple GPU acceleration on Linux is not assumed.
+Needs Python GObject/GTK4/libadwaita, FFmpeg, Poppler, libvips, Rust and a C/C++ compiler. `uv` supplies CMake/Ninja and the isolated OCR environment if needed. On ARM, the bundled llama.cpp build includes runtime-selected ARM CPU variants. Release builds include Vulkan GPU acceleration with CPU fallback. Apple Silicon on Linux uses Mesa Honeykrisp (`vulkan-asahi`); it does not use macOS Metal. Source builds can additionally include CUDA when `nvcc` is installed.
 
 ```sh
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -46,7 +46,7 @@ Remove the marked `omarchy-recall` block from `~/.config/hypr/bindings.lua` and 
 
 `python3 -m unittest discover -s omarchy/tests -v` checks socket permissions, dispatch and result-opening scope. `python3 omarchy/smoke.py` checks actual model inference, image/audio extraction and document/code retrieval in a disposable index (with a relaxed semantic gate because the corpus contains only four files). `RECALL_MODELS=~/.local/share/recall/Models cargo test --release --test reference_vectors -- --nocapture` verifies text, image, frame and speech vectors against pinned references.
 
-`omarchy/bundle.sh` creates `dist/omarchy-recall-<architecture>.tar.gz` and its SHA-256 checksum. Extract to a permanent directory and run `app/install.sh` then `python3 omarchy/install.py`. The binary and shared libraries travel together; models and personal indexes are excluded. This is a user-install bundle, not a pacman/AUR package. It still requires the runtime dependencies listed above. CUDA/Vulkan builds must be validated separately; this installation was tested on aarch64 CPU.
+`omarchy/bundle.sh` creates `dist/omarchy-recall-<architecture>.tar.gz` and its SHA-256 checksum. Extract to a permanent directory and run `app/install.sh` then `python3 omarchy/install.py`. The binary and shared libraries travel together; models and personal indexes are excluded. This is a user-install bundle, not a pacman/AUR package. It still requires the runtime dependencies listed above. The Vulkan backend was validated against the reference model on an Apple M1 Max running Arch Linux ARM. CUDA remains a source-build option and is not included in the prebuilt release.
 
 The installer detects the running Omarchy shell path and handles the `ShellColor` compatibility rename used by newer Qt installations. If QML edits are cached, restart the shell using that same `OMARCHY_PATH` to preserve any local compatibility copy.
 
@@ -69,3 +69,11 @@ omarchy-recall text 123 --code
 Like HEY CLI, `omarchy-recall skill` prints the skill embedded in the CLI package, and `omarchy-recall skill install` installs it without contacting the search service. The canonical installed location is `~/.agents/skills/omarchy-recall/SKILL.md`, which shared-skill-aware agents can discover directly. When Claude Code is available, installation links `~/.claude/skills/omarchy-recall` to that directory. Earlier identical Codex copies are migrated to links; custom agent skill directories are preserved.
 
 The desktop installer calls the same `skill install` command. [The Markdown source](skills/omarchy-recall/SKILL.md) generates `embedded_skill.py` through `python3 omarchy/embed_skill.py`, also run by the bundle builder. The source and generated content are checked by tests. To remove the skill, remove its shared directory and agent links.
+
+## GPU acceleration
+
+`omarchy-recall doctor` reports the selected indexing device and packaged backend plugins without loading model weights or requiring the service. Automatic selection uses an available GPU, otherwise CPU. Background indexing uses the GPU; short interactive queries use the CPU by default to avoid GPU startup latency.
+
+Apple Silicon Linux needs `vulkan-asahi`; AMD/Intel/NVIDIA machines need their appropriate Vulkan userspace driver. The bash installer adds Asahi's driver on Apple machines. The package declares GPU drivers as optional dependencies. A missing GPU driver leaves CPU search available.
+
+For direct engine testing, `RECALL_DEVICE=cpu|vulkan|cuda|auto recall ...` chooses a backend. An explicitly requested unavailable GPU is an error. Automatic GPU initialization/warmup failures retry on the CPU; native driver crashes cannot be caught by this retry. To force the running service to use CPU indexing, add `Environment=RECALL_DEVICE=cpu` to its systemd user service override and restart it. `omarchy/benchmark.py` compares warmed CPU/Vulkan text, image and audio inference on public fixtures without changing the live index.

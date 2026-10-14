@@ -32,6 +32,7 @@ fn usage() -> String {
                                           of long PDFs and documents
   recall search <words>... [--kind K,K] [-n 10] [--json]
                                           \"code: <words>\" searches the code index
+  recall devices                          JSON diagnostics: selected GPU/CPU and backend plugins
   recall status                           what's in the index
   recall eval <queries.json> [-n 10]      recall of known answers (see evals/; \"code: …\" queries search code)
   recall index-service <folder>... [--code-root DIR]... [--code-exclude DIR]... [--backfill] [--prune]
@@ -449,6 +450,7 @@ fn main() {
         "estimate" => estimate(&args).map(|_| 0),
         "index" => index(&args).map(|_| 0),
         "search" => search(&args).map(|_| 0),
+        "devices" => { println!("{}", llama::diagnostics()); Ok(0) },
         "status" => status(&args).map(|_| 0),
         "eval" => evaluate(&args).map(|_| 0),
         "index-service" => cli::index_service::serve(&args),

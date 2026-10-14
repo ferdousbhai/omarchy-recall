@@ -19,10 +19,11 @@ jobs:
     env:
       CC: clang
       CXX: clang++
+      RECALL_BUILD_VULKAN: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build ffmpeg poppler-utils libvips-tools python3-gi gir1.2-gtk-4.0 gir1.2-adw-1
+      - run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build ffmpeg poppler-utils libvips-tools python3-gi gir1.2-gtk-4.0 gir1.2-adw-1 libvulkan-dev glslc spirv-headers
       - run: scripts/build-llama.sh
       - run: cargo build --release --locked && cargo test --release --locked
       - run: python3 -m unittest discover -s omarchy/tests -v

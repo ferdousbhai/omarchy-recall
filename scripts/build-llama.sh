@@ -20,6 +20,11 @@ if pkg-config --exists vulkan 2> /dev/null && command -v glslc > /dev/null \
    && [[ -f /usr/include/spirv/unified1/spirv.hpp ]]; then   # libvulkan-dev, glslc, spirv-headers
   BACKENDS+=" vulkan"
 fi
+if [[ ${RECALL_BUILD_VULKAN:-auto} == 1 && "$BACKENDS" != *vulkan* ]]; then
+  echo 'Vulkan requested but build dependencies are missing (Vulkan headers/library, glslc, SPIR-V headers).' >&2
+  exit 1
+fi
+if [[ ${RECALL_BUILD_VULKAN:-auto} == 0 ]]; then BACKENDS=${BACKENDS/ vulkan/}; fi
 STAMP="$TAG $(sha256sum "$PATCH" | cut -c1-12) $BACKENDS"
 BUILT="$OUT/lib/libllama.so"
 if [[ -f "$BUILT" && "$(cat "$OUT/BUILD" 2>/dev/null)" == "$STAMP" ]]; then

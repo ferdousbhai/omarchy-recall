@@ -24,7 +24,7 @@ pub fn serve(args: &Arguments) -> i32 {
     let info = embedder.info().clone();
     let info_fields = json!({
         "model": info.model, "revision": info.revision, "runtime": info.runtime, "dtype": info.dtype, "dim": info.dim,
-        "text_only": info.text_only, "load_seconds": info.load_seconds.unwrap_or(0.0),
+        "device": recall::llama::device_name(), "text_only": info.text_only, "load_seconds": info.load_seconds.unwrap_or(0.0),
     });
     emit(json!({"ready": true, "info": info_fields}));
     for line in std::io::stdin().lock().lines() {

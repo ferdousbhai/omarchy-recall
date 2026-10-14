@@ -9,6 +9,7 @@ Use Bash with `omarchy-recall`. Search and status output JSON on stdout and do n
 
 ```bash
 omarchy-recall status
+omarchy-recall doctor
 omarchy-recall search "notes about retrying failed requests" --limit 5
 omarchy-recall search "payment declined error" --kind screenshot --limit 5
 omarchy-recall search "a dog running on a beach" --kind image
@@ -16,6 +17,8 @@ omarchy-recall search "discussion about the release deadline" --kind audio --kin
 omarchy-recall search "retry an operation with exponential backoff" --code --limit 5
 omarchy-recall search "ERR_CONNECTION_RESET" --keyword-only
 ```
+
+`doctor` reports the automatically selected indexing device and installed backend plugins without loading weights or contacting the service. Apple Silicon Linux uses the Asahi/Honeykrisp Vulkan driver. Indexing can use the GPU while interactive queries stay on CPU to avoid startup latency.
 
 Inspect `status` for `roots`, `code_roots`, `download`, `pending`, and `code_pending`. Results cover only those roots, and may be incomplete while indexing. Code requires `--code` or a `code:` query prefix. `--kind` filters the document/media index and cannot be combined with `--code`.
 

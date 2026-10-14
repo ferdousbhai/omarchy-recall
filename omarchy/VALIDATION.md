@@ -20,3 +20,13 @@ Agent CLI update:
 - Eight Python tests passed, covering argument forwarding, code/passage routing, invalid argument rejection, unavailable-service exit status, semantic fallback warnings, and the original bridge/action checks.
 - Installed CLI exercised against the live index: semantic code search with a two-result limit, full passage retrieval, screenshot filtering, and keyword-only search passed.
 - Bundled agent skill passed the skill-creator validator and was installed in both Codex and shared agents skill directories.
+
+Vulkan GPU update (Apple M1 Max, Mesa Honeykrisp 26.2.4):
+
+- Installed `vulkan-asahi`; Vulkan identifies the integrated Apple M1 Max GPU.
+- All 77 Rust tests passed with `RECALL_DEVICE=vulkan`, including the nine reference-vector comparisons for text, images, sampled frames and speech.
+- Twelve Python CLI/skill tests passed, including service-independent backend diagnostics.
+- Actual service indexing logs confirm `Vulkan0 (Apple M1 Max (G13C C0))`; interactive queries remain CPU by default.
+- Warmed, three-run-median fixture timings: photo embedding 2.0663 s CPU versus 0.4573 s GPU (4.52×); audio 0.4044 s versus 0.2544 s (1.59×). Short text query CPU 0.0293 s versus GPU 0.0948 s, supporting the CPU query default. These are fixture timings, not whole-library throughput guarantees.
+- CPU/GPU embedding agreement exceeded cosine 0.999 for all benchmark modalities. Full measurements are in `m1-max-benchmark.json`; reproduce using `python3 omarchy/benchmark.py`.
+- Explicit unavailable CUDA/invalid backend requests fail clearly. Automatic selection succeeds on CPU when no Vulkan driver is available.

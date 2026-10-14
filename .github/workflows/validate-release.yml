@@ -5,7 +5,7 @@ on:
       version:
         description: Release tag to validate
         required: true
-        default: v0.1.1
+        default: v0.2.0
 permissions:
   contents: read
 jobs:
@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install -y ffmpeg poppler-utils libvips-tools
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg poppler-utils libvips-tools libvulkan1 mesa-vulkan-drivers
       - env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.version }}
@@ -47,4 +47,11 @@ jobs:
               assert path.stat().st_size == size
               assert hashlib.sha256(path.read_bytes()).hexdigest() == digest
           PY
-      - run: python3 released/omarchy-recall/omarchy/smoke.py
+      - name: Verify CPU fallback
+        run: RECALL_DEVICE=cpu python3 released/omarchy-recall/omarchy/smoke.py
+      - name: Verify packaged Vulkan plugin
+        run: |
+          released/omarchy-recall/target/release/recall devices
+          RECALL_DEVICE=vulkan python3 released/omarchy-recall/omarchy/smoke.py
+        # Hosted runners exercise Vulkan through Mesa software rendering;
+        # Apple M1 Max hardware correctness/performance is checked locally.

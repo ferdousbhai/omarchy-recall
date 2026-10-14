@@ -19,6 +19,7 @@ def parser():
     search.add_argument('--limit', type=int, default=10, help='Maximum results, 1–100 (default 10)')
     search.add_argument('--keyword-only', action='store_true', help='Skip semantic inference')
     search.add_argument('--json', action='store_true', help='JSON output (the default)')
+    commands.add_parser('doctor', help='Report GPU/CPU selection and installed backend plugins without loading the model')
     commands.add_parser('status', help='Index counts, selected roots, model download and indexing progress')
     text = commands.add_parser('text', help='Read the full indexed passage for a search hit')
     text.add_argument('segment', type=int, help='segment_id from a hit')
@@ -36,6 +37,21 @@ def parser():
 
 def main(argv=None):
     arguments = parser().parse_args(argv)
+    if arguments.command == 'doctor':
+        import os
+        import subprocess
+        from pathlib import Path
+        binary = Path(__file__).resolve().parents[1] / 'target/release/recall'
+        try:
+            result = subprocess.run([str(binary), 'devices'], capture_output=True, text=True, timeout=30)
+            if result.returncode:
+                print(json.dumps({'error': result.stderr.strip() or 'Backend detection failed'}))
+                return 1
+            print(result.stdout.strip())
+            return 0
+        except (OSError, subprocess.TimeoutExpired) as error:
+            print(json.dumps({'error': str(error)}))
+            return 1
     if arguments.command == 'setup':
         import subprocess
         from pathlib import Path

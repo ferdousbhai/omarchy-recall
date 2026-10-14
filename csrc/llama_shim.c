@@ -106,6 +106,12 @@ void recall_device_name(char * out, size_t size) {
     snprintf(out, size, "%s (%s)", ggml_backend_dev_name(chosen_device), ggml_backend_dev_description(chosen_device));
 }
 
+// Explicit CPU retry after an automatic GPU model/context initialization failure.
+void recall_backend_cpu(void) {
+    chosen_device = NULL;
+    device_list[0] = NULL;
+}
+
 // MARK: Image sizing
 
 // transformers' Gemma 4 image processor: scale to fill `budget` soft tokens (each 3 x 3 patches of 16 px) keeping the

@@ -21,6 +21,7 @@ extern "C" {
     fn recall_log_to(path: *const c_char);
     fn recall_log_line(text: *const c_char);
     fn recall_backend_init(folder: *const c_char, wanted: *const c_char);
+    fn recall_backend_cpu();
     fn recall_device_name(out: *mut c_char, size: usize);
     fn recall_target_size(height: c_int, width: c_int, budget: c_int, out_height: *mut c_int, out_width: *mut c_int)
         -> c_int;
@@ -141,7 +142,8 @@ static BACKEND: Once = Once::new();
 fn backend() {
     BACKEND.call_once(|| {
         let folder = path_cstring(&backend_folder());
-        let wanted = cstring(&std::env::var("RECALL_DEVICE").unwrap_or_default().to_lowercase());
+        let choice = std::env::var("RECALL_DEVICE").unwrap_or_default().to_lowercase();
+        let wanted = cstring(if choice == "auto" { "" } else { &choice });
         unsafe { recall_backend_init(folder.as_ptr(), wanted.as_ptr()) };
     });
 }
@@ -154,6 +156,18 @@ pub fn device_name() -> String {
         recall_device_name(buffer.as_mut_ptr(), buffer.len());
         CStr::from_ptr(buffer.as_ptr()).to_string_lossy().into_owned()
     }
+}
+
+/// Runtime diagnostics without loading model weights.
+pub fn diagnostics() -> serde_json::Value {
+    let folder = backend_folder();
+    let mut plugins: Vec<String> = std::fs::read_dir(&folder).into_iter().flatten().flatten()
+        .map(|entry| entry.file_name().to_string_lossy().into_owned())
+        .filter(|name| name.starts_with("libggml-") && name.ends_with(".so"))
+        .collect();
+    plugins.sort();
+    serde_json::json!({"selected_device": device_name(), "requested_device": std::env::var("RECALL_DEVICE").unwrap_or_else(|_| "auto".into()),
+                      "plugins": plugins, "runtime": build_tag(), "backend_directory": folder})
 }
 
 /// Where llama.cpp's warnings and errors go (stderr when None).
@@ -215,6 +229,15 @@ impl LlamaEmbedder {
         let started = Instant::now();
         log_to(log);
         backend();
+        let wanted = std::env::var("RECALL_DEVICE").unwrap_or_default().to_lowercase();
+        if !["", "auto", "cpu", "cuda", "vulkan"].contains(&wanted.as_str()) {
+            return Err(WorkerError::Failed(format!("invalid RECALL_DEVICE={wanted}; use auto, cpu, cuda or vulkan")));
+        }
+        let on_gpu = device_name() != "CPU";
+        if ["cuda", "vulkan"].contains(&wanted.as_str()) && !on_gpu {
+            return Err(WorkerError::Failed(format!("requested {wanted} GPU is unavailable; check the backend plugin and graphics driver, or use RECALL_DEVICE=cpu")));
+        }
+        let auto = wanted.is_empty() || wanted == "auto";
         if !text_only && models.media.is_none() {
             return Err(WorkerError::NotFound(format!("{} (images and audio) isn't downloaded yet", MEDIA.name)));
         }
@@ -228,6 +251,11 @@ impl LlamaEmbedder {
             recall_open(text.as_ptr(), media.as_ref().map_or(std::ptr::null(), |media| media.as_ptr()), max_tokens,
                         error.as_mut_ptr(), error.len())
         };
+        if raw.is_null() && on_gpu && auto {
+            log_line("GPU initialization failed; retrying on CPU");
+            unsafe { recall_backend_cpu() };
+            return Self::new(models, text_only, log);
+        }
         if raw.is_null() {
             return Err(WorkerError::Failed(error_text(&error)));
         }
@@ -238,7 +266,15 @@ impl LlamaEmbedder {
         let mut embedder = Self { info, raw, size };
         // The first calls build the GPU pipelines: pay that now (the panel is opening).
         for _ in 0..2 {
-            embedder.embed_texts(&[prompts::query("warm up")])?;
+            if let Err(error) = embedder.embed_texts(&[prompts::query("warm up")]) {
+                if on_gpu && auto {
+                    embedder.close();
+                    log_line("GPU warmup failed; retrying on CPU");
+                    unsafe { recall_backend_cpu() };
+                    return Self::new(models, text_only, log);
+                }
+                return Err(error);
+            }
         }
         let seconds = (started.elapsed().as_secs_f64() * 100.0).round() / 100.0;
         embedder.info.load_seconds = Some(seconds);

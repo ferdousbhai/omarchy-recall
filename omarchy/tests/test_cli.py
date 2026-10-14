@@ -52,3 +52,12 @@ class CliTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+class DoctorTests(unittest.TestCase):
+    def test_doctor_does_not_need_the_service(self):
+        output = io.StringIO()
+        with patch('subprocess.run', return_value=type('Reply', (), {'returncode': 0, 'stdout': '{"selected_device":"CPU"}', 'stderr': ''})()) as run, patch.object(cli, 'request') as request, contextlib.redirect_stdout(output):
+            self.assertEqual(cli.main(['doctor']), 0)
+        self.assertEqual(json.loads(output.getvalue())['selected_device'], 'CPU')
+        self.assertEqual(run.call_args.args[0][-1], 'devices')
+        request.assert_not_called()

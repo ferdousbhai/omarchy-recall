@@ -1,0 +1,22 @@
+{
+  "cpu": {
+    "device": "CPU",
+    "load_seconds": 0.67,
+    "text_seconds": 0.0293,
+    "image_seconds": 2.0663,
+    "audio_seconds": 0.4044
+  },
+  "vulkan": {
+    "device": "Vulkan0 (Apple M1 Max (G13C C0))",
+    "load_seconds": 1.0,
+    "text_seconds": 0.0948,
+    "image_seconds": 0.4573,
+    "audio_seconds": 0.2544
+  },
+  "text_agreement": 0.999948,
+  "text_speedup": 0.31,
+  "image_agreement": 0.999923,
+  "image_speedup": 4.52,
+  "audio_agreement": 0.999627,
+  "audio_speedup": 1.59
+}
